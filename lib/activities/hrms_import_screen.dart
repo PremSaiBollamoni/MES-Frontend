@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../components/app_dropdown_field.dart';
 import '../components/app_text_field.dart';
 import '../components/custom_toast.dart';
@@ -40,7 +41,9 @@ class _HrmsImportScreenState extends State<HrmsImportScreen> {
       _errorMessage = null;
     });
     try {
-      final unlinked = await _hrmsApiService.getUnlinkedEmployees();
+      // Deliberately entering this screen is the one place a user actually wants a
+      // fresh HRMS check, unlike the badge/banner on the Employees list.
+      final unlinked = await _hrmsApiService.getUnlinkedEmployees(forceRefresh: true);
       if (!mounted) return;
       setState(() {
         _unlinked = unlinked;
@@ -78,22 +81,22 @@ class _HrmsImportScreenState extends State<HrmsImportScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     AppTextField(
-                      label: "Employee Code",
+                      label: L10n.of(context).employeeCode,
                       controller: employeeCodeController,
-                      validator: (v) => (v == null || v.trim().isEmpty) ? "Required" : null,
+                      validator: (v) => (v == null || v.trim().isEmpty) ? L10n.of(context).required : null,
                     ),
                     const SizedBox(height: 16.0),
                     AppDropdownField<String>(
-                      label: "Role",
+                      label: L10n.of(context).role,
                       value: selectedRole,
-                      hint: "Select a role",
+                      hint: L10n.of(context).selectARole,
                       items: roles.map((r) => DropdownMenuItem(value: r.roleCode, child: Text(r.displayName))).toList(),
                       onChanged: (v) => setDialogState(() => selectedRole = v),
-                      validator: (v) => v == null ? "Required" : null,
+                      validator: (v) => v == null ? L10n.of(context).required : null,
                     ),
                     const SizedBox(height: 16.0),
                     AppTextField(
-                      label: "Department",
+                      label: L10n.of(context).department,
                       controller: departmentController,
                       hint: "e.g. Stitching, Cutting, Quality",
                     ),
@@ -101,7 +104,7 @@ class _HrmsImportScreenState extends State<HrmsImportScreen> {
                 ),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text("Cancel")),
+                TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(L10n.of(context).cancel)),
                 ElevatedButton(
                   onPressed: isSubmitting
                       ? null
@@ -136,7 +139,7 @@ class _HrmsImportScreenState extends State<HrmsImportScreen> {
                   style: ElevatedButton.styleFrom(backgroundColor: ThemeTokens.primary, foregroundColor: Colors.white),
                   child: isSubmitting
                       ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text("Import"),
+                      : Text(L10n.of(context).import),
                 ),
               ],
             );
@@ -161,37 +164,36 @@ class _HrmsImportScreenState extends State<HrmsImportScreen> {
         return StatefulBuilder(
           builder: (dialogContext, setDialogState) {
             return AlertDialog(
-              title: Text("Sync All", style: ThemeTokens.headingMedium.copyWith(fontSize: 18)),
+              title: Text(L10n.of(context).syncAll, style: ThemeTokens.headingMedium.copyWith(fontSize: 18)),
               content: Form(
                 key: formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      "Imports all ${_unlinked.length} unlinked HRMS employees under one role. "
-                      "You can move individuals to a different role afterward.",
+                      L10n.of(context).importsAllUnlinked(_unlinked.length),
                       style: ThemeTokens.bodyMedium,
                     ),
                     const SizedBox(height: 16.0),
                     AppDropdownField<String>(
-                      label: "Default Role",
+                      label: L10n.of(context).defaultRole,
                       value: selectedRole,
-                      hint: "Select a role",
+                      hint: L10n.of(context).selectARole,
                       items: roles.map((r) => DropdownMenuItem(value: r.roleCode, child: Text(r.displayName))).toList(),
                       onChanged: (v) => setDialogState(() => selectedRole = v),
-                      validator: (v) => v == null ? "Required" : null,
+                      validator: (v) => v == null ? L10n.of(context).required : null,
                     ),
                     const SizedBox(height: 16.0),
                     AppTextField(
-                      label: "Default Department (optional)",
+                      label: L10n.of(context).defaultDepartmentOptional,
                       controller: departmentController,
-                      hint: "Leave blank to keep each employee's HRMS department",
+                      hint: L10n.of(context).leaveBlankToKeepEach,
                     ),
                   ],
                 ),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text("Cancel")),
+                TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(L10n.of(context).cancel)),
                 ElevatedButton(
                   onPressed: isSubmitting
                       ? null
@@ -222,7 +224,7 @@ class _HrmsImportScreenState extends State<HrmsImportScreen> {
                   style: ElevatedButton.styleFrom(backgroundColor: ThemeTokens.primary, foregroundColor: Colors.white),
                   child: isSubmitting
                       ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text("Sync All"),
+                      : Text(L10n.of(context).syncAll),
                 ),
               ],
             );
@@ -245,7 +247,7 @@ class _HrmsImportScreenState extends State<HrmsImportScreen> {
         appBar: AppBar(
           backgroundColor: ThemeTokens.surfaceSolid,
           elevation: 0,
-          title: Text("Import from HRMS", style: ThemeTokens.headingMedium.copyWith(color: ThemeTokens.textPrimary)),
+          title: Text(L10n.of(context).importFromHrms, style: ThemeTokens.headingMedium.copyWith(color: ThemeTokens.textPrimary)),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded, color: ThemeTokens.textSecondary),
             onPressed: () => Navigator.of(context).pop(_anyImported),
@@ -255,7 +257,7 @@ class _HrmsImportScreenState extends State<HrmsImportScreen> {
               TextButton.icon(
                 onPressed: _syncAll,
                 icon: const Icon(Icons.sync_alt_rounded, color: ThemeTokens.primary, size: 20),
-                label: Text("Sync All", style: ThemeTokens.bodyMedium.copyWith(color: ThemeTokens.primary, fontWeight: FontWeight.w700)),
+                label: Text(L10n.of(context).syncAll, style: ThemeTokens.bodyMedium.copyWith(color: ThemeTokens.primary, fontWeight: FontWeight.w700)),
               ),
           ],
         ),
@@ -285,10 +287,10 @@ class _HrmsImportScreenState extends State<HrmsImportScreen> {
             children: [
               Icon(Icons.check_circle_outline_rounded, color: ThemeTokens.success, size: 40),
               const SizedBox(height: 12.0),
-              Text("Everything's in sync", style: ThemeTokens.headingMedium.copyWith(fontSize: 16)),
+              Text(L10n.of(context).everythingSInSync, style: ThemeTokens.headingMedium.copyWith(fontSize: 16)),
               const SizedBox(height: 6.0),
               Text(
-                "Every HRMS employee is already linked to a record in this app.",
+                L10n.of(context).everyHrmsEmployeeIsAlready,
                 style: ThemeTokens.bodyMedium,
                 textAlign: TextAlign.center,
               ),
