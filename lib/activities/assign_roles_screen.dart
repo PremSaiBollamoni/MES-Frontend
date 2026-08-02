@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../utils/employee_names.dart';
+import '../l10n/app_localizations.dart';
 import '../components/app_button.dart';
 import '../components/custom_toast.dart';
 import '../models/employee_detail.dart';
@@ -64,7 +66,7 @@ class _AssignRolesScreenState extends State<AssignRolesScreen> {
 
   Future<void> _save() async {
     if (_selected.isEmpty) {
-      CustomToast.show(context, "Select at least one role", isError: true);
+      CustomToast.show(context, L10n.of(context).selectAtLeastOneRole, isError: true);
       return;
     }
 
@@ -72,7 +74,7 @@ class _AssignRolesScreenState extends State<AssignRolesScreen> {
     try {
       await _apiService.assignRoles(widget.employee.id, _selected.toList());
       if (!mounted) return;
-      CustomToast.show(context, "Roles updated");
+      CustomToast.show(context, L10n.of(context).rolesUpdated);
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
@@ -86,7 +88,7 @@ class _AssignRolesScreenState extends State<AssignRolesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ThemeTokens.background,
-      appBar: AppBar(title: Text("Assign Roles", style: ThemeTokens.headingMedium.copyWith(fontSize: 17))),
+      appBar: AppBar(title: Text(L10n.of(context).assignRoles, style: ThemeTokens.headingMedium.copyWith(fontSize: 17))),
       body: SafeArea(child: _buildBody()),
     );
   }
@@ -104,7 +106,7 @@ class _AssignRolesScreenState extends State<AssignRolesScreen> {
             children: [
               Text(_loadError!, style: ThemeTokens.bodyMedium, textAlign: TextAlign.center),
               const SizedBox(height: 16.0),
-              SizedBox(width: 180, child: AppPrimaryButton(label: "Retry", onPressed: _loadRoles)),
+              SizedBox(width: 180, child: AppPrimaryButton(label: L10n.of(context).retry, onPressed: _loadRoles)),
             ],
           ),
         ),
@@ -118,10 +120,10 @@ class _AssignRolesScreenState extends State<AssignRolesScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(widget.employee.name, style: ThemeTokens.headingMedium.copyWith(fontSize: 17)),
+              Text(EmployeeNames.display(context, widget.employee.name), style: ThemeTokens.headingMedium.copyWith(fontSize: 17)),
               const SizedBox(height: 4.0),
               Text(
-                "An employee can hold more than one role. Select every role this person should be able to sign in as.",
+                L10n.of(context).anEmployeeCanHoldMore,
                 style: ThemeTokens.bodyMedium,
               ),
             ],
@@ -179,7 +181,7 @@ class _AssignRolesScreenState extends State<AssignRolesScreen> {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          child: AppPrimaryButton(label: "Save Roles", onPressed: _save, isLoading: _isSaving),
+          child: AppPrimaryButton(label: L10n.of(context).saveRoles, onPressed: _save, isLoading: _isSaving),
         ),
       ],
     );
