@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/theme_tokens.dart';
 
 /// A quiet placeholder for roles whose real PALMS module isn't built yet
@@ -20,7 +21,7 @@ class MinimalDashboard extends StatelessWidget {
           children: [
             Icon(Icons.hourglass_empty_rounded, color: ThemeTokens.textLight, size: 34),
             const SizedBox(height: 16.0),
-            Text("Nothing to show yet", style: ThemeTokens.headingMedium.copyWith(fontSize: 16), textAlign: TextAlign.center),
+            Text(L10n.of(context).nothingToShowYet, style: ThemeTokens.headingMedium.copyWith(fontSize: 16), textAlign: TextAlign.center),
             const SizedBox(height: 8.0),
             Text(message, style: ThemeTokens.bodyMedium, textAlign: TextAlign.center),
           ],
