@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../utils/employee_names.dart';
+import '../../utils/operation_names.dart';
+import '../../l10n/app_localizations.dart';
 import '../../components/app_button.dart';
 import '../../components/custom_toast.dart';
 import '../../models/allocation.dart';
@@ -20,8 +23,9 @@ import 'tracking_session_screen.dart';
 class StationAssignScreen extends StatefulWidget {
   final Station station;
   final DateTime date;
+  final List<RosterEntry> roster;
 
-  const StationAssignScreen({super.key, required this.station, required this.date});
+  const StationAssignScreen({super.key, required this.station, required this.date, required this.roster});
 
   @override
   State<StationAssignScreen> createState() => _StationAssignScreenState();
@@ -43,26 +47,23 @@ class _StationAssignScreenState extends State<StationAssignScreen> {
     _load();
   }
 
+  /// The caller (StationAllocationListScreen) just fetched this exact date's roster
+  /// moments ago to render its own list - re-fetching it here would be a wasted,
+  /// redundant network round-trip for data that's already fresh in memory.
   Future<void> _load() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
     try {
-      final roster = await _apiService.rosterForDate(formatIsoDate(widget.date));
-      if (!mounted) return;
-      setState(() {
-        _eligible = roster.where((e) => !e.isTracking).toList()
-          ..sort((a, b) => a.employeeName.compareTo(b.employeeName));
-        _isLoading = false;
-      });
+      _eligible = widget.roster.where((e) => !e.isTracking).toList()
+        ..sort((a, b) => a.employeeName.compareTo(b.employeeName));
+      _isLoading = false;
     } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _errorMessage = e.toString().replaceAll("Exception: ", "");
-        _isLoading = false;
-      });
+      _errorMessage = e.toString().replaceAll("Exception: ", "");
+      _isLoading = false;
     }
+    if (mounted) setState(() {});
   }
 
   int get _needed => widget.station.operatorCount;
@@ -93,8 +94,8 @@ class _StationAssignScreenState extends State<StationAssignScreen> {
       if (!mounted) return;
       final piecesIssued = await showPiecesPromptDialog(
         context,
-        title: "Start Tracking",
-        label: "Pieces issued",
+        title: L10n.of(context).startTracking,
+        label: L10n.of(context).piecesIssued2,
       );
       if (piecesIssued == null) {
         setState(() => _isSubmitting = false);
@@ -128,7 +129,7 @@ class _StationAssignScreenState extends State<StationAssignScreen> {
     final station = widget.station;
     return Scaffold(
       backgroundColor: ThemeTokens.background,
-      appBar: AppBar(title: Text("${station.stationNumber} - ${station.operationName}", style: ThemeTokens.headingMedium.copyWith(fontSize: 16))),
+      appBar: AppBar(title: Text("${station.stationNumber} - ${OperationNames.display(context, station.operationName)}", style: ThemeTokens.headingMedium.copyWith(fontSize: 16))),
       body: Column(
         children: [
           _buildHeader(),
@@ -152,7 +153,7 @@ class _StationAssignScreenState extends State<StationAssignScreen> {
                   ),
                 ),
               AppPrimaryButton(
-                label: "Assign & Start Tracking",
+                label: L10n.of(context).assignStartTracking,
                 icon: Icons.play_circle_outline_rounded,
                 isLoading: _isSubmitting,
                 onPressed: _selected.length == _needed ? _assignAndStart : null,
@@ -177,9 +178,9 @@ class _StationAssignScreenState extends State<StationAssignScreen> {
         ),
         child: Row(
           children: [
-            _headerStat("Zone", station.zone),
+            _headerStat(L10n.of(context).zone, station.zone),
             _headerStat("SAM", station.sam.toStringAsFixed(2)),
-            _headerStat("Operators", "$_needed"),
+            _headerStat(L10n.of(context).operators, "$_needed"),
           ],
         ),
       ),
@@ -204,16 +205,16 @@ class _StationAssignScreenState extends State<StationAssignScreen> {
     if (_errorMessage != null) {
       return OpsStateMessage(
         icon: Icons.wifi_off_rounded,
-        title: "Couldn't load operators",
+        title: L10n.of(context).couldnTLoadOperators,
         body: _errorMessage!,
-        action: SizedBox(width: 180, child: AppPrimaryButton(label: "Retry", onPressed: _load)),
+        action: SizedBox(width: 180, child: AppPrimaryButton(label: L10n.of(context).retry, onPressed: _load)),
       );
     }
     if (_eligible.isEmpty) {
-      return const OpsStateMessage(
+      return OpsStateMessage(
         icon: Icons.person_off_outlined,
-        title: "No available operators",
-        body: "Every present operator is already tracking elsewhere for this shift date.",
+        title: L10n.of(context).noAvailableOperators,
+        body: L10n.of(context).everyPresentOperatorIsAlready,
       );
     }
     return ListView(
@@ -239,13 +240,13 @@ class _StationAssignScreenState extends State<StationAssignScreen> {
         onChanged: disabled ? null : (_) => _toggle(entry.employeeId),
         activeColor: ThemeTokens.primary,
         controlAffinity: ListTileControlAffinity.leading,
-        title: Text(entry.employeeName, style: ThemeTokens.bodyLarge.copyWith(fontSize: 14.5)),
+        title: Text(EmployeeNames.display(context, entry.employeeName), style: ThemeTokens.bodyLarge.copyWith(fontSize: 14.5)),
         subtitle: entry.isAssigned
             ? Text(
-                alreadyHere ? "Already here" : "Currently at ${entry.stationNumber} - ${entry.operationName}",
+                alreadyHere ? L10n.of(context).alreadyHere : "Currently at ${entry.stationNumber} - ${OperationNames.display(context, entry.operationName)}",
                 style: ThemeTokens.caption.copyWith(color: alreadyHere ? ThemeTokens.primary : ThemeTokens.textLight),
               )
-            : Text("Unassigned", style: ThemeTokens.caption),
+            : Text(L10n.of(context).unassigned, style: ThemeTokens.caption),
       ),
     );
   }
