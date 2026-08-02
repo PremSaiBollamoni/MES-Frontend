@@ -8,10 +8,8 @@ class TrackingSessionApiService extends ApiClient {
   factory TrackingSessionApiService() => _instance;
   TrackingSessionApiService._internal();
 
-  Future<List<TrackingSession>> listForDate(String date) async {
-    final response = await http
-        .get(Uri.parse("$baseUrl/api/tracking?date=$date"), headers: headers)
-        .timeout(const Duration(seconds: 10));
+  Future<List<TrackingSession>> listForDate(String date, {bool forceRefresh = false}) async {
+    final response = await cachedGet(Uri.parse("$baseUrl/api/tracking?date=$date"), forceRefresh: forceRefresh);
     ensureSuccess(response);
     final List<dynamic> data = json.decode(response.body);
     return data.map((e) => TrackingSession.fromJson(e as Map<String, dynamic>)).toList();
@@ -20,8 +18,9 @@ class TrackingSessionApiService extends ApiClient {
   Future<TrackingSession> start(StartTrackingRequest request) async {
     final response = await http
         .post(Uri.parse("$baseUrl/api/tracking/start"), headers: headers, body: json.encode(request.toJson()))
-        .timeout(const Duration(seconds: 8));
+        .timeout(const Duration(seconds: 60));
     ensureSuccess(response);
+    ApiClient.invalidateCache();
     return TrackingSession.fromJson(json.decode(response.body) as Map<String, dynamic>);
   }
 
@@ -32,8 +31,9 @@ class TrackingSessionApiService extends ApiClient {
           headers: headers,
           body: json.encode(StopTrackingRequest(piecesCompleted: piecesCompleted).toJson()),
         )
-        .timeout(const Duration(seconds: 8));
+        .timeout(const Duration(seconds: 60));
     ensureSuccess(response);
+    ApiClient.invalidateCache();
     return TrackingSession.fromJson(json.decode(response.body) as Map<String, dynamic>);
   }
 }
