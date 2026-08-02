@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../utils/operation_names.dart';
+import '../../l10n/app_localizations.dart';
 import '../../components/app_button.dart';
 import '../../components/custom_toast.dart';
 import '../../models/stock_availability.dart';
@@ -33,13 +35,13 @@ class _StockAvailabilityScreenState extends State<StockAvailabilityScreen> {
     _load();
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool forceRefresh = false}) async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
     try {
-      final items = await _apiService.listForDate(formatIsoDate(_date));
+      final items = await _apiService.listForDate(formatIsoDate(_date), forceRefresh: forceRefresh);
       if (!mounted) return;
       setState(() {
         _items = items;
@@ -57,7 +59,7 @@ class _StockAvailabilityScreenState extends State<StockAvailabilityScreen> {
   Future<void> _logStock(StockAvailability item) async {
     final qty = await showStockQuantityDialog(
       context,
-      stationLabel: "${item.stationNumber} · ${item.operationName}",
+      stationLabel: "${item.stationNumber} · ${OperationNames.display(context, item.operationName)}",
       initialValue: item.currentStockQty,
     );
     if (qty == null) return;
@@ -83,7 +85,7 @@ class _StockAvailabilityScreenState extends State<StockAvailabilityScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ThemeTokens.background,
-      appBar: AppBar(title: Text("Stock Availability", style: ThemeTokens.headingMedium.copyWith(fontSize: 17))),
+      appBar: AppBar(title: Text(L10n.of(context).stockAvailability, style: ThemeTokens.headingMedium.copyWith(fontSize: 17))),
       body: Column(
         children: [
           Padding(
@@ -101,21 +103,21 @@ class _StockAvailabilityScreenState extends State<StockAvailabilityScreen> {
     if (_errorMessage != null) {
       return OpsStateMessage(
         icon: Icons.wifi_off_rounded,
-        title: "Couldn't load stock availability",
+        title: L10n.of(context).couldnTLoadStockAvailability,
         body: _errorMessage!,
-        action: SizedBox(width: 180, child: AppPrimaryButton(label: "Retry", onPressed: _load)),
+        action: SizedBox(width: 180, child: AppPrimaryButton(label: L10n.of(context).retry, onPressed: _load)),
       );
     }
     if (_items.isEmpty) {
-      return const OpsStateMessage(
+      return OpsStateMessage(
         icon: Icons.inventory_2_outlined,
-        title: "No stations found",
-        body: "Set up stations first, then check back here.",
+        title: L10n.of(context).noStationsFound,
+        body: L10n.of(context).setUpStationsFirstThen,
       );
     }
     return RefreshIndicator(
       color: ThemeTokens.primary,
-      onRefresh: _load,
+      onRefresh: () => _load(forceRefresh: true),
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
         itemCount: _items.length,
