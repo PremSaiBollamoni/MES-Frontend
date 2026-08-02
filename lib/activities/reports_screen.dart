@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/report.dart';
 import '../utils/theme_tokens.dart';
 import 'reports/report_type_screen.dart';
@@ -75,9 +76,9 @@ class ReportsScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(20.0),
           children: [
-            Text("AI Reports", style: ThemeTokens.headingLarge.copyWith(fontSize: 24)),
+            Text(L10n.of(context).aiReports, style: ThemeTokens.headingLarge.copyWith(fontSize: 24)),
             const SizedBox(height: 4.0),
-            Text("Claude-generated analytics reports, exported as PDF.", style: ThemeTokens.bodyMedium),
+            Text(L10n.of(context).claudeGeneratedAnalyticsReportsExported, style: ThemeTokens.bodyMedium),
             const SizedBox(height: 20.0),
             ..._reportTypeCards.map((card) => _ReportCardTile(
                   card: card,
