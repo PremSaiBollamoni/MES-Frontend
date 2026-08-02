@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../utils/employee_names.dart';
+import '../l10n/app_localizations.dart';
 import '../components/app_button.dart';
 import '../components/attendance_widgets.dart';
 import '../components/custom_toast.dart';
@@ -160,10 +162,10 @@ class _MonthlyAttendanceScreenState extends State<MonthlyAttendanceScreen> {
     return Scaffold(
       backgroundColor: ThemeTokens.background,
       appBar: AppBar(
-        title: Text("Monthly Attendance", style: ThemeTokens.headingMedium.copyWith(fontSize: 17)),
+        title: Text(L10n.of(context).monthlyAttendance, style: ThemeTokens.headingMedium.copyWith(fontSize: 17)),
         actions: [
           IconButton(
-            tooltip: "Sync this month",
+            tooltip: L10n.of(context).syncThisMonth,
             onPressed: _isSyncing ? null : _sync,
             icon: _isSyncing
                 ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: ThemeTokens.primary))
@@ -197,9 +199,9 @@ class _MonthlyAttendanceScreenState extends State<MonthlyAttendanceScreen> {
     if (_errorMessage != null) {
       return AttendanceMessage(
         icon: Icons.wifi_off_rounded,
-        title: "Couldn't load this month",
+        title: L10n.of(context).couldnTLoadThisMonth,
         body: _errorMessage!,
-        action: SizedBox(width: 180, child: AppPrimaryButton(label: "Retry", onPressed: _load)),
+        action: SizedBox(width: 180, child: AppPrimaryButton(label: L10n.of(context).retry, onPressed: _load)),
       );
     }
 
@@ -226,7 +228,7 @@ class _MonthlyAttendanceScreenState extends State<MonthlyAttendanceScreen> {
         final r = list[index];
         return AttendanceRow(
           leading: "${r.workDate.day.toString().padLeft(2, '0')}/${r.workDate.month.toString().padLeft(2, '0')}",
-          name: r.employeeName,
+          name: EmployeeNames.display(context, r.employeeName),
           subtitle: r.employeeCode,
           times: "${r.firstIn ?? '—'} → ${r.lastOut ?? '—'}",
           status: r.status ?? "—",
@@ -276,7 +278,7 @@ class _MonthSummary extends StatelessWidget {
     final lateCount = records.where((r) => r.late).length;
     final employees = records.map((r) => r.employeeCode).toSet().length;
     return SummaryPanel(
-      eyebrow: "This month",
+      eyebrow: L10n.of(context).thisMonth,
       figures: [
         (value: "${records.length}", label: "Records", color: ThemeTokens.primary),
         (value: "$employees", label: "Employees", color: ThemeTokens.success),
