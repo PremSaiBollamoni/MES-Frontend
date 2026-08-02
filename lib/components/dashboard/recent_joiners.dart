@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../utils/employee_names.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/dashboard_summary.dart';
 import '../../utils/theme_tokens.dart';
 
@@ -17,7 +19,7 @@ class RecentJoiners extends StatelessWidget {
           children: [
             Container(width: 18, height: 2, color: ThemeTokens.primary),
             const SizedBox(width: 10.0),
-            Text("RECENTLY JOINED", style: ThemeTokens.labelSmall),
+            Text(L10n.of(context).recentlyJoined, style: ThemeTokens.labelSmall),
           ],
         ),
         const SizedBox(height: 8.0),
@@ -45,7 +47,7 @@ class RecentJoiners extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(joiner.name, style: ThemeTokens.headingMedium.copyWith(fontSize: 15), overflow: TextOverflow.ellipsis),
+                      Text(EmployeeNames.display(context, joiner.name), style: ThemeTokens.headingMedium.copyWith(fontSize: 15), overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 2.0),
                       Text(
                         [joiner.employeeCode, if (joiner.department != null) joiner.department!].join('  ·  '),
