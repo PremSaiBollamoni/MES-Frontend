@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../utils/employee_names.dart';
+import '../l10n/app_localizations.dart';
 import '../components/dashboard/attendance_dashboard.dart';
 import '../components/dashboard/minimal_dashboard.dart';
 import '../components/dashboard/my_production_dashboard.dart';
@@ -28,14 +30,14 @@ class DashboardScreen extends StatelessWidget {
     }).join(' ');
   }
 
-  String _greeting() {
+  String _greeting(BuildContext context) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
+    if (hour < 12) return L10n.of(context).goodMorning;
+    if (hour < 17) return L10n.of(context).goodAfternoon;
+    return L10n.of(context).goodEvening;
   }
 
-  Widget _bodyForRole() {
+  Widget _bodyForRole(BuildContext context) {
     switch (user.role) {
       case 'FACTORY_MANAGER':
       case 'HR_MANAGER':
@@ -47,20 +49,20 @@ class DashboardScreen extends StatelessWidget {
       case 'OPERATOR':
         return user.canAccess('MY_PRODUCTION')
             ? const MyProductionDashboard()
-            : const MinimalDashboard(
-                message: "Your piece count and shift efficiency will appear here once production tracking goes live.",
+            : MinimalDashboard(
+                message: L10n.of(context).yourPieceCountAndShift,
               );
       case 'QC_INSPECTOR':
-        return const MinimalDashboard(
-          message: "Defect logging and QC verification will appear here once the QC module goes live.",
+        return MinimalDashboard(
+          message: L10n.of(context).defectLoggingAndQcVerification,
         );
       case 'STORE_KEEPER':
-        return const MinimalDashboard(
-          message: "Packing, RTM, and dispatch stock will appear here once the stock module goes live.",
+        return MinimalDashboard(
+          message: L10n.of(context).packingRtmAndDispatchStock,
         );
       default:
-        return const MinimalDashboard(
-          message: "Your dashboard will appear here once this role's PALMS module goes live.",
+        return MinimalDashboard(
+          message: L10n.of(context).yourDashboardWillAppearHere,
         );
     }
   }
@@ -79,16 +81,16 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(_greeting().toUpperCase(), style: ThemeTokens.labelSmall),
+              Text(_greeting(context).toUpperCase(), style: ThemeTokens.labelSmall),
               const SizedBox(height: 6.0),
-              Text(user.name.split(' ').first, style: ThemeTokens.headingDisplay),
+              Text(EmployeeNames.display(context, user.name).split(' ').first, style: ThemeTokens.headingDisplay),
               const SizedBox(height: 4.0),
               Text(_formatRole(user.role), style: ThemeTokens.bodyMedium),
               const SizedBox(height: 16.0),
             ],
           ),
         ),
-        Expanded(child: _bodyForRole()),
+        Expanded(child: _bodyForRole(context)),
       ],
     );
   }
