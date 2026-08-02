@@ -9,23 +9,17 @@ class AttendanceApiService extends ApiClient {
   factory AttendanceApiService() => _instance;
   AttendanceApiService._internal();
 
-  // HRMS lives on a remote biometric portal that can be slow to answer; the old
-  // 10s ceiling was tripping "TimeoutException: Future not completed". 30s gives
-  // the portal room to respond without hanging the UI indefinitely.
-  static const Duration _hrmsTimeout = Duration(seconds: 30);
-  static const Duration _localTimeout = Duration(seconds: 20);
-
-  Future<LiveAttendanceStatus> getLiveStatus() async {
-    final response = await http.get(Uri.parse("$baseUrl/api/attendance/live"), headers: headers).timeout(_hrmsTimeout);
+  Future<LiveAttendanceStatus> getLiveStatus({bool forceRefresh = false}) async {
+    final response = await cachedGet(Uri.parse("$baseUrl/api/attendance/live"), forceRefresh: forceRefresh);
     ensureSuccess(response);
     return LiveAttendanceStatus.fromJson(json.decode(response.body) as Map<String, dynamic>);
   }
 
-  Future<List<DailyAttendanceRecord>> getDaily({DateTime? date}) async {
+  Future<List<DailyAttendanceRecord>> getDaily({DateTime? date, bool forceRefresh = false}) async {
     final uri = Uri.parse("$baseUrl/api/attendance/daily").replace(
       queryParameters: date != null ? {'date': _isoDate(date)} : null,
     );
-    final response = await http.get(uri, headers: headers).timeout(_hrmsTimeout);
+    final response = await cachedGet(uri, forceRefresh: forceRefresh);
     ensureSuccess(response);
     final List<dynamic> data = json.decode(response.body);
     return data.map((e) => DailyAttendanceRecord.fromJson(e as Map<String, dynamic>)).toList();
@@ -37,22 +31,23 @@ class AttendanceApiService extends ApiClient {
     final uri = Uri.parse("$baseUrl/api/attendance/sync").replace(queryParameters: {'days': '$days'});
     final response = await http.post(uri, headers: headers).timeout(const Duration(minutes: 2));
     ensureSuccess(response);
+    ApiClient.invalidateCache();
     return AttendanceSyncResult.fromJson(json.decode(response.body) as Map<String, dynamic>);
   }
 
-  Future<List<AttendanceHistoryRecord>> getHistory({int days = 30}) async {
+  Future<List<AttendanceHistoryRecord>> getHistory({int days = 30, bool forceRefresh = false}) async {
     final uri = Uri.parse("$baseUrl/api/attendance/history").replace(queryParameters: {'days': '$days'});
-    final response = await http.get(uri, headers: headers).timeout(_localTimeout);
+    final response = await cachedGet(uri, forceRefresh: forceRefresh);
     ensureSuccess(response);
     final List<dynamic> data = json.decode(response.body);
     return data.map((e) => AttendanceHistoryRecord.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   /// Local history for an explicit date range - used by the Monthly view.
-  Future<List<AttendanceHistoryRecord>> getHistoryRange(DateTime from, DateTime to) async {
+  Future<List<AttendanceHistoryRecord>> getHistoryRange(DateTime from, DateTime to, {bool forceRefresh = false}) async {
     final uri = Uri.parse("$baseUrl/api/attendance/history")
         .replace(queryParameters: {'from': _isoDate(from), 'to': _isoDate(to)});
-    final response = await http.get(uri, headers: headers).timeout(_localTimeout);
+    final response = await cachedGet(uri, forceRefresh: forceRefresh);
     ensureSuccess(response);
     final List<dynamic> data = json.decode(response.body);
     return data.map((e) => AttendanceHistoryRecord.fromJson(e as Map<String, dynamic>)).toList();
