@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../utils/theme_tokens.dart';
 import 'daily_attendance_screen.dart';
 import 'live_attendance_screen.dart';
@@ -14,33 +15,33 @@ class AttendanceScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
       children: [
-        Text("Choose a view", style: ThemeTokens.bodyMedium),
+        Text(L10n.of(context).chooseAView, style: ThemeTokens.bodyMedium),
         const SizedBox(height: 20.0),
         _Tile(
           icon: Icons.sensors_rounded,
-          title: "Live Attendance",
-          subtitle: "Today's punches & present / absent status",
+          title: L10n.of(context).liveAttendance,
+          subtitle: L10n.of(context).todaySPunchesPresentAbsent,
           onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LiveAttendanceScreen())),
         ),
         const SizedBox(height: 14.0),
         _Tile(
           icon: Icons.calendar_month_rounded,
-          title: "Monthly Attendance",
-          subtitle: "Pick a month to review the full period",
+          title: L10n.of(context).monthlyAttendance,
+          subtitle: L10n.of(context).pickAMonthToReview,
           onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MonthlyAttendanceScreen())),
         ),
         const SizedBox(height: 14.0),
         _Tile(
           icon: Icons.event_rounded,
-          title: "Daily Attendance",
-          subtitle: "Pick any past date to see that day's attendance",
+          title: L10n.of(context).dailyAttendance,
+          subtitle: L10n.of(context).pickAnyPastDateTo,
           onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const DailyAttendanceScreen())),
         ),
         const SizedBox(height: 14.0),
-        const _Tile(
+        _Tile(
           icon: Icons.insert_chart_outlined_rounded,
-          title: "Reports",
-          subtitle: "Exports & analytics",
+          title: L10n.of(context).reports,
+          subtitle: L10n.of(context).exportsAnalytics,
           comingSoon: true,
         ),
       ],
