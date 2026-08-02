@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../utils/employee_names.dart';
+import '../l10n/app_localizations.dart';
 import '../components/app_button.dart';
 import '../components/attendance_widgets.dart';
 import '../models/attendance.dart';
@@ -37,14 +39,17 @@ class _LiveAttendanceScreenState extends State<LiveAttendanceScreen> {
     super.dispose();
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool forceRefresh = false}) async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
       _notConfigured = false;
     });
     try {
-      final results = await Future.wait([_apiService.getLiveStatus(), _apiService.getDaily()]);
+      final results = await Future.wait([
+        _apiService.getLiveStatus(forceRefresh: forceRefresh),
+        _apiService.getDaily(forceRefresh: forceRefresh),
+      ]);
       if (!mounted) return;
       setState(() {
         _live = results[0] as LiveAttendanceStatus;
@@ -55,7 +60,7 @@ class _LiveAttendanceScreenState extends State<LiveAttendanceScreen> {
       if (!mounted) return;
       final message = e.toString().replaceAll("Exception: ", "");
       setState(() {
-        _notConfigured = message.contains("not configured");
+        _notConfigured = message.contains(L10n.of(context).notConfigured);
         _errorMessage = message;
         _isLoading = false;
       });
@@ -79,7 +84,7 @@ class _LiveAttendanceScreenState extends State<LiveAttendanceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ThemeTokens.background,
-      appBar: AppBar(title: Text("Live Attendance", style: ThemeTokens.headingMedium.copyWith(fontSize: 17))),
+      appBar: AppBar(title: Text(L10n.of(context).liveAttendance, style: ThemeTokens.headingMedium.copyWith(fontSize: 17))),
       body: _buildBody(),
     );
   }
@@ -87,18 +92,18 @@ class _LiveAttendanceScreenState extends State<LiveAttendanceScreen> {
   Widget _buildBody() {
     if (_isLoading) return const Center(child: CircularProgressIndicator(color: ThemeTokens.primary));
     if (_notConfigured) {
-      return const AttendanceMessage(
+      return AttendanceMessage(
         icon: Icons.link_off_rounded,
-        title: "HRMS not connected yet",
-        body: "The biometric attendance portal hasn't been configured on the server yet.",
+        title: L10n.of(context).hrmsNotConnectedYet,
+        body: L10n.of(context).theBiometricAttendancePortalHasn,
       );
     }
     if (_errorMessage != null) {
       return AttendanceMessage(
         icon: Icons.wifi_off_rounded,
-        title: "Couldn't load attendance",
+        title: L10n.of(context).couldnTLoadAttendance,
         body: _errorMessage!,
-        action: SizedBox(width: 180, child: AppPrimaryButton(label: "Retry", onPressed: _load)),
+        action: SizedBox(width: 180, child: AppPrimaryButton(label: L10n.of(context).retry, onPressed: _load)),
       );
     }
 
@@ -127,7 +132,7 @@ class _LiveAttendanceScreenState extends State<LiveAttendanceScreen> {
         Expanded(
           child: RefreshIndicator(
             color: ThemeTokens.primary,
-            onRefresh: _load,
+            onRefresh: () => _load(forceRefresh: true),
             child: (_daily.isEmpty || list.isEmpty)
                 ? ListView(
                     padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
@@ -145,7 +150,7 @@ class _LiveAttendanceScreenState extends State<LiveAttendanceScreen> {
                     itemBuilder: (context, index) {
                       final r = list[index];
                       return AttendanceRow(
-                        name: r.employeeName,
+                        name: EmployeeNames.display(context, r.employeeName),
                         subtitle: [r.employeeCode, if (r.departmentName != null) r.departmentName!].join('  ·  '),
                         times: "${_formatTime(r.firstIn)} → ${_formatTime(r.lastOut)}",
                         status: r.status,
