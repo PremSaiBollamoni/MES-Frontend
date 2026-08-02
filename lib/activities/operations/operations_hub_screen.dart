@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/theme_tokens.dart';
 import 'production_entry_screen.dart';
 import 'station_allocation_list_screen.dart';
@@ -18,47 +19,47 @@ class OperationsHubScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
       children: [
-        Text("Choose a view", style: ThemeTokens.bodyMedium),
+        Text(L10n.of(context).chooseAView, style: ThemeTokens.bodyMedium),
         const SizedBox(height: 20.0),
         _Tile(
           icon: Icons.assignment_ind_rounded,
-          title: "Operator Allocation",
-          subtitle: "Assign operators to stations for the shift",
+          title: L10n.of(context).operatorAllocation,
+          subtitle: L10n.of(context).assignOperatorsToStationsFor,
           onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const StationAllocationListScreen())),
         ),
         const SizedBox(height: 14.0),
         _Tile(
           icon: Icons.dashboard_customize_rounded,
-          title: "Station Status",
-          subtitle: "Live manned / unmanned board with bottleneck alerts",
+          title: L10n.of(context).stationStatus,
+          subtitle: L10n.of(context).liveMannedUnmannedBoardWith,
           onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const StationStatusScreen())),
         ),
         const SizedBox(height: 14.0),
         _Tile(
           icon: Icons.inventory_2_rounded,
-          title: "Stock Availability",
-          subtitle: "Pre-shift check: is fabric/stock ready at each station",
+          title: L10n.of(context).stockAvailability,
+          subtitle: L10n.of(context).preShiftCheckIsFabric,
           onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const StockAvailabilityScreen())),
         ),
         const SizedBox(height: 14.0),
         _Tile(
           icon: Icons.stacked_line_chart_rounded,
-          title: "Daily Stock Position",
-          subtitle: "Opening / additions / dispatched by post-sewing zone",
+          title: L10n.of(context).dailyStockPosition,
+          subtitle: L10n.of(context).openingAdditionsDispatchedByPost,
           onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const StockPositionScreen())),
         ),
         const SizedBox(height: 14.0),
         _Tile(
           icon: Icons.speed_rounded,
-          title: "Production Entry",
-          subtitle: "Log pieces produced on behalf of an operator",
+          title: L10n.of(context).productionEntry,
+          subtitle: L10n.of(context).logPiecesProducedOnBehalf,
           onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ProductionEntryScreen())),
         ),
         const SizedBox(height: 14.0),
         _Tile(
           icon: Icons.move_down_rounded,
-          title: "WIP / Bundle Tracking",
-          subtitle: "Create bundles, move between stations, track queues",
+          title: L10n.of(context).wipBundleTracking,
+          subtitle: L10n.of(context).createBundlesMoveBetweenStations,
           onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const WipBundleScreen())),
         ),
       ],
