@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../utils/employee_names.dart';
+import '../../utils/operation_names.dart';
+import '../../l10n/app_localizations.dart';
 import '../../components/app_button.dart';
 import '../../models/tracking_session.dart';
 import '../../services/tracking_session_api_service.dart';
@@ -34,8 +37,13 @@ class _TrackingSessionScreenState extends State<TrackingSessionScreen> {
   }
 
   void _tick() {
-    final started = DateTime.parse(widget.session.startedAt);
-    setState(() => _elapsed = DateTime.now().difference(started));
+    // The backend serializes startedAt as a Java LocalDateTime - a naive string with
+    // no timezone marker (e.g. "2026-07-25T05:30:00"), representing the server clock
+    // (UTC on Render). DateTime.parse would otherwise interpret that as LOCAL time on
+    // this device, silently adding the device's UTC offset as bogus elapsed time.
+    final raw = widget.session.startedAt;
+    final started = DateTime.parse(raw.endsWith('Z') ? raw : "${raw}Z");
+    setState(() => _elapsed = DateTime.now().toUtc().difference(started));
   }
 
   @override
@@ -73,8 +81,8 @@ class _TrackingSessionScreenState extends State<TrackingSessionScreen> {
   Future<void> _stopTracking() async {
     final piecesCompleted = await showPiecesPromptDialog(
       context,
-      title: "Stop Tracking",
-      label: "Pieces completed",
+      title: L10n.of(context).stopTracking,
+      label: L10n.of(context).piecesCompleted,
       initialValue: widget.session.piecesIssued,
     );
     if (piecesCompleted == null) return;
@@ -97,40 +105,40 @@ class _TrackingSessionScreenState extends State<TrackingSessionScreen> {
     final session = widget.session;
     return Scaffold(
       backgroundColor: ThemeTokens.background,
-      appBar: AppBar(title: Text("Live Tracking", style: ThemeTokens.headingMedium.copyWith(fontSize: 17))),
+      appBar: AppBar(title: Text(L10n.of(context).liveTracking, style: ThemeTokens.headingMedium.copyWith(fontSize: 17))),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(session.employeeNames, style: ThemeTokens.headingLarge),
+              Text(EmployeeNames.display(context, session.employeeNames), style: ThemeTokens.headingLarge),
               const SizedBox(height: 4.0),
-              Text("${session.stationNumber} · ${session.operationName}", style: ThemeTokens.bodyMedium),
+              Text("${session.stationNumber} · ${OperationNames.display(context, session.operationName)}", style: ThemeTokens.bodyMedium),
               const SizedBox(height: 24.0),
-              TrackingStatTile(label: "Elapsed Time", value: _formatElapsed(_elapsed), valueColor: ThemeTokens.primary),
+              TrackingStatTile(label: L10n.of(context).elapsedTime, value: _formatElapsed(_elapsed), valueColor: ThemeTokens.primary),
               const SizedBox(height: 12.0),
               Row(
                 children: [
-                  Expanded(child: TrackingStatTile(label: "Standard SAM", value: session.standardSam.toStringAsFixed(2))),
+                  Expanded(child: TrackingStatTile(label: L10n.of(context).standardSam, value: session.standardSam.toStringAsFixed(2))),
                   const SizedBox(width: 12.0),
-                  Expanded(child: TrackingStatTile(label: "Actual SAM", value: _actualSam.toStringAsFixed(2))),
+                  Expanded(child: TrackingStatTile(label: L10n.of(context).actualSam, value: _actualSam.toStringAsFixed(2))),
                 ],
               ),
               const SizedBox(height: 12.0),
               TrackingStatTile(
-                label: "Efficiency",
+                label: L10n.of(context).efficiency,
                 value: "${_efficiencyPercent.toStringAsFixed(0)}% · $_classification",
                 valueColor: classificationColor(_classification),
               ),
               const SizedBox(height: 12.0),
               Row(
                 children: [
-                  Expanded(child: TrackingStatTile(label: "Pieces Issued", value: "${session.piecesIssued}")),
+                  Expanded(child: TrackingStatTile(label: L10n.of(context).piecesIssued, value: "${session.piecesIssued}")),
                   const SizedBox(width: 12.0),
                   Expanded(
                     child: TrackingStatTile(
-                      label: session.requiredOperatorCount > 1 ? "Est. Wage (per operator)" : "Est. Wages",
+                      label: session.requiredOperatorCount > 1 ? L10n.of(context).estWagePerOperator : L10n.of(context).estWages,
                       value: session.estimatedWagesPerOperator.toStringAsFixed(2),
                     ),
                   ),
@@ -138,11 +146,11 @@ class _TrackingSessionScreenState extends State<TrackingSessionScreen> {
               ),
               if (session.requiredOperatorCount > 1) ...[
                 const SizedBox(height: 12.0),
-                TrackingStatTile(label: "Est. Wage (team total)", value: session.estimatedWages.toStringAsFixed(2)),
+                TrackingStatTile(label: L10n.of(context).estWageTeamTotal, value: session.estimatedWages.toStringAsFixed(2)),
               ],
               const SizedBox(height: 32.0),
               AppPrimaryButton(
-                label: "Stop Tracking",
+                label: L10n.of(context).stopTracking,
                 onPressed: _stopTracking,
                 isLoading: _isStopping,
                 icon: Icons.stop_rounded,
