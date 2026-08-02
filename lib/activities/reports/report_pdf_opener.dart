@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'package:printing/printing.dart';
 import '../../utils/theme_tokens.dart';
@@ -18,12 +19,12 @@ Future<void> openReportResponse(BuildContext context, http.Response response, St
     context: context,
     builder: (context) => AlertDialog(
       backgroundColor: ThemeTokens.surfaceSolid,
-      title: Text("Report (HTML fallback)", style: ThemeTokens.headingMedium.copyWith(fontSize: 16)),
+      title: Text(L10n.of(context).reportHtmlFallback, style: ThemeTokens.headingMedium.copyWith(fontSize: 16)),
       content: SingleChildScrollView(
         child: Text(response.body, style: ThemeTokens.bodyMedium),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Close")),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(L10n.of(context).close)),
       ],
     ),
   );
