@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../utils/operation_names.dart';
+import '../../l10n/app_localizations.dart';
 import '../../activities/operations/operations_widgets.dart';
 import '../../models/production_entry.dart';
 import '../../services/production_entry_api_service.dart';
@@ -62,7 +64,7 @@ class _MyProductionDashboardState extends State<MyProductionDashboard> {
             children: [
               Text(_errorMessage!, style: ThemeTokens.bodyMedium, textAlign: TextAlign.center),
               const SizedBox(height: 16.0),
-              SizedBox(width: 180, child: AppPrimaryButton(label: "Retry", onPressed: _load)),
+              SizedBox(width: 180, child: AppPrimaryButton(label: L10n.of(context).retry, onPressed: _load)),
             ],
           ),
         ),
@@ -72,7 +74,7 @@ class _MyProductionDashboardState extends State<MyProductionDashboard> {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
-          child: Text("No production entries logged for you yet.", style: ThemeTokens.bodyMedium, textAlign: TextAlign.center),
+          child: Text(L10n.of(context).noProductionEntriesLoggedFor, style: ThemeTokens.bodyMedium, textAlign: TextAlign.center),
         ),
       );
     }
@@ -88,12 +90,12 @@ class _MyProductionDashboardState extends State<MyProductionDashboard> {
         padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
         children: [
           LedgerHero(
-            eyebrow: "Pieces (Last 30 Days)",
+            eyebrow: L10n.of(context).piecesLast30Days,
             value: "$totalPieces",
             stats: [
-              (value: "${avgEfficiency.toStringAsFixed(0)}%", label: "Avg Efficiency"),
-              (value: "${best.efficiencyPct.toStringAsFixed(0)}%", label: "Best Day"),
-              (value: "${_entries.length}", label: "Shifts Logged"),
+              (value: "${avgEfficiency.toStringAsFixed(0)}%", label: L10n.of(context).avgEfficiency),
+              (value: "${best.efficiencyPct.toStringAsFixed(0)}%", label: L10n.of(context).bestDay),
+              (value: "${_entries.length}", label: L10n.of(context).shiftsLogged),
             ],
           ),
           const SizedBox(height: 28.0),
@@ -101,7 +103,7 @@ class _MyProductionDashboardState extends State<MyProductionDashboard> {
             children: [
               Container(width: 18, height: 2, color: ThemeTokens.primary),
               const SizedBox(width: 10.0),
-              Text("RECENT ENTRIES", style: ThemeTokens.labelSmall),
+              Text(L10n.of(context).recentEntries, style: ThemeTokens.labelSmall),
             ],
           ),
           const SizedBox(height: 8.0),
@@ -130,7 +132,7 @@ class _EntryRow extends StatelessWidget {
               children: [
                 Text(entry.shiftDate, style: ThemeTokens.bodyLarge.copyWith(fontSize: 14)),
                 const SizedBox(height: 2.0),
-                Text("${entry.stationNumber} · ${entry.operationName} · ${entry.piecesProduced} pcs", style: ThemeTokens.caption),
+                Text("${entry.stationNumber} · ${OperationNames.display(context, entry.operationName)} · ${entry.piecesProduced} pcs", style: ThemeTokens.caption),
               ],
             ),
           ),
