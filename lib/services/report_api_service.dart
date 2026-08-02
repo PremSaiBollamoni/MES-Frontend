@@ -8,10 +8,8 @@ class ReportApiService extends ApiClient {
   factory ReportApiService() => _instance;
   ReportApiService._internal();
 
-  Future<List<ReportSummary>> listReports(ReportType type) async {
-    final response = await http
-        .get(Uri.parse("$baseUrl/api/reports?type=${type.apiValue}"), headers: headers)
-        .timeout(const Duration(seconds: 10));
+  Future<List<ReportSummary>> listReports(ReportType type, {bool forceRefresh = false}) async {
+    final response = await cachedGet(Uri.parse("$baseUrl/api/reports?type=${type.apiValue}"), forceRefresh: forceRefresh);
     ensureSuccess(response);
     final List<dynamic> data = json.decode(response.body);
     return data.map((e) => ReportSummary.fromJson(e as Map<String, dynamic>)).toList();
@@ -24,13 +22,17 @@ class ReportApiService extends ApiClient {
         .post(Uri.parse("$baseUrl/api/reports/generate?date=$date&type=${type.apiValue}&force=$force"), headers: headers)
         .timeout(const Duration(minutes: 3));
     ensureSuccess(response);
+    ApiClient.invalidateCache();
     return ReportSummary.fromJson(json.decode(response.body) as Map<String, dynamic>);
   }
 
+  // Not cached - potentially large binary PDF content, downloaded on explicit tap
+  // rather than repeatedly on every screen visit, so caching it isn't worth the
+  // in-memory footprint.
   Future<http.Response> downloadReportPdf(int id) async {
     final response = await http
         .get(Uri.parse("$baseUrl/api/reports/$id/pdf"), headers: headers)
-        .timeout(const Duration(seconds: 30));
+        .timeout(const Duration(seconds: 60));
     ensureSuccess(response);
     return response;
   }
