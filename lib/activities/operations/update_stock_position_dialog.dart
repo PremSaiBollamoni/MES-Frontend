@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/stock_position.dart';
 import '../../utils/theme_tokens.dart';
 
@@ -39,7 +40,7 @@ class _UpdateStockPositionDialogState extends State<UpdateStockPositionDialog> {
     final additions = int.tryParse(_additionsController.text.trim());
     final dispatched = int.tryParse(_dispatchedController.text.trim());
     if (additions == null || dispatched == null) {
-      setState(() => _error = "Enter valid whole numbers");
+      setState(() => _error = L10n.of(context).enterValidWholeNumbers);
       return;
     }
     setState(() {
@@ -70,13 +71,13 @@ class _UpdateStockPositionDialogState extends State<UpdateStockPositionDialog> {
           TextField(
             controller: _additionsController,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: "Additions"),
+            decoration: InputDecoration(labelText: L10n.of(context).additions),
           ),
           const SizedBox(height: 12.0),
           TextField(
             controller: _dispatchedController,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: "Dispatched"),
+            decoration: InputDecoration(labelText: L10n.of(context).dispatched),
           ),
           if (_error != null) ...[
             const SizedBox(height: 10.0),
@@ -85,13 +86,13 @@ class _UpdateStockPositionDialogState extends State<UpdateStockPositionDialog> {
         ],
       ),
       actions: [
-        TextButton(onPressed: _isSaving ? null : () => Navigator.of(context).pop(), child: const Text("Cancel")),
+        TextButton(onPressed: _isSaving ? null : () => Navigator.of(context).pop(), child: Text(L10n.of(context).cancel)),
         ElevatedButton(
           onPressed: _isSaving ? null : _submit,
           style: ElevatedButton.styleFrom(backgroundColor: ThemeTokens.primary, foregroundColor: Colors.white),
           child: _isSaving
               ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Text("Save"),
+              : Text(L10n.of(context).save),
         ),
       ],
     );
