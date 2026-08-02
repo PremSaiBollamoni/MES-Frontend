@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/employee_names.dart';
 import '../models/employee_summary.dart';
 import '../utils/role_icon.dart';
 import '../utils/theme_tokens.dart';
@@ -85,7 +86,7 @@ class EmployeeCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(employee.name, style: ThemeTokens.headingMedium.copyWith(fontSize: 16), overflow: TextOverflow.ellipsis),
+                    Text(EmployeeNames.display(context, employee.name), style: ThemeTokens.headingMedium.copyWith(fontSize: 16), overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 4.0),
                     Row(
                       children: [
