@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../utils/employee_names.dart';
+import '../../utils/operation_names.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/production_entry.dart';
 import '../../utils/theme_tokens.dart';
 import 'operations_widgets.dart';
@@ -25,9 +28,9 @@ Future<void> showProductionEntryDetailDialog(BuildContext context, ProductionEnt
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(entry.employeeName, style: ThemeTokens.headingMedium.copyWith(fontSize: 18), overflow: TextOverflow.ellipsis),
+                      Text(EmployeeNames.display(context, entry.employeeName), style: ThemeTokens.headingMedium.copyWith(fontSize: 18), overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 4.0),
-                      Text("${entry.stationNumber} · ${entry.operationName}", style: ThemeTokens.caption, overflow: TextOverflow.ellipsis),
+                      Text("${entry.stationNumber} · ${OperationNames.display(context, entry.operationName)}", style: ThemeTokens.caption, overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
@@ -39,27 +42,34 @@ Future<void> showProductionEntryDetailDialog(BuildContext context, ProductionEnt
               ],
             ),
             const SizedBox(height: 4.0),
-            Text(entry.shiftDate, style: ThemeTokens.caption.copyWith(color: ThemeTokens.textLight)),
+            Text(
+              // Show the clock times when the entry has them; older entries logged
+              // before hourly slots existed only have a date.
+              entry.startLabel == null
+                  ? entry.shiftDate
+                  : "${entry.shiftDate}   ·   ${entry.startLabel} - ${entry.endLabel}",
+              style: ThemeTokens.caption.copyWith(color: ThemeTokens.textLight),
+            ),
             const SizedBox(height: 20.0),
             Row(
               children: [
-                Expanded(child: TrackingStatTile(label: "Pieces Produced", value: "${entry.piecesProduced}")),
+                Expanded(child: TrackingStatTile(label: L10n.of(context).piecesProduced, value: "${entry.piecesProduced}")),
                 const SizedBox(width: 12.0),
-                Expanded(child: TrackingStatTile(label: "Time on Machine", value: "${entry.timeOnMachineMinutes.toStringAsFixed(1)} min")),
+                Expanded(child: TrackingStatTile(label: L10n.of(context).timeOnMachine, value: "${entry.timeOnMachineMinutes.toStringAsFixed(1)} min")),
               ],
             ),
             const SizedBox(height: 12.0),
             Row(
               children: [
-                Expanded(child: TrackingStatTile(label: "Efficiency", value: "${entry.efficiencyPct.toStringAsFixed(1)}%", valueColor: color)),
+                Expanded(child: TrackingStatTile(label: L10n.of(context).efficiency, value: "${entry.efficiencyPct.toStringAsFixed(1)}%", valueColor: color)),
                 const SizedBox(width: 12.0),
-                Expanded(child: TrackingStatTile(label: "Wages Earned", value: "₹${entry.wagesEarned.toStringAsFixed(2)}", valueColor: ThemeTokens.success)),
+                Expanded(child: TrackingStatTile(label: L10n.of(context).wagesEarned, value: "₹${entry.wagesEarned.toStringAsFixed(2)}", valueColor: ThemeTokens.success)),
               ],
             ),
             const SizedBox(height: 20.0),
             Align(
               alignment: Alignment.centerRight,
-              child: TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Close")),
+              child: TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(L10n.of(context).close)),
             ),
           ],
         ),
