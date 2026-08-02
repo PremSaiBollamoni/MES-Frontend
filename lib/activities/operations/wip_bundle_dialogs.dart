@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/station.dart';
+import '../../utils/operation_names.dart';
 import '../../utils/theme_tokens.dart';
 
 class CreateBundleDialog extends StatefulWidget {
@@ -30,7 +32,7 @@ class _CreateBundleDialogState extends State<CreateBundleDialog> {
     final ref = _refController.text.trim();
     final qty = int.tryParse(_qtyController.text.trim());
     if (ref.isEmpty || qty == null || _stationId == null) {
-      setState(() => _error = "Fill in every field with valid values");
+      setState(() => _error = L10n.of(context).fillInEveryFieldWith);
       return;
     }
     setState(() {
@@ -52,21 +54,21 @@ class _CreateBundleDialogState extends State<CreateBundleDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text("Create Bundle", style: ThemeTokens.headingMedium.copyWith(fontSize: 18)),
+      title: Text(L10n.of(context).createBundle, style: ThemeTokens.headingMedium.copyWith(fontSize: 18)),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: _refController, decoration: const InputDecoration(labelText: "Bundle Reference")),
+            TextField(controller: _refController, decoration: InputDecoration(labelText: L10n.of(context).bundleReference)),
             const SizedBox(height: 12.0),
-            TextField(controller: _qtyController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "Quantity")),
+            TextField(controller: _qtyController, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: L10n.of(context).quantity)),
             const SizedBox(height: 12.0),
             DropdownButtonFormField<int>(
               initialValue: _stationId,
               isExpanded: true,
-              hint: const Text("Initial Station"),
+              hint: Text(L10n.of(context).initialStation),
               items: widget.stations
-                  .map((s) => DropdownMenuItem(value: s.id, child: Text("${s.stationNumber} · ${s.operationName}", overflow: TextOverflow.ellipsis)))
+                  .map((s) => DropdownMenuItem(value: s.id, child: Text("${s.stationNumber} · ${OperationNames.display(context, s.operationName)}", overflow: TextOverflow.ellipsis)))
                   .toList(),
               onChanged: (v) => setState(() => _stationId = v),
             ),
@@ -78,13 +80,13 @@ class _CreateBundleDialogState extends State<CreateBundleDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: _isSaving ? null : () => Navigator.of(context).pop(), child: const Text("Cancel")),
+        TextButton(onPressed: _isSaving ? null : () => Navigator.of(context).pop(), child: Text(L10n.of(context).cancel)),
         ElevatedButton(
           onPressed: _isSaving ? null : _submit,
           style: ElevatedButton.styleFrom(backgroundColor: ThemeTokens.primary, foregroundColor: Colors.white),
           child: _isSaving
               ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Text("Create"),
+              : Text(L10n.of(context).create),
         ),
       ],
     );
@@ -108,7 +110,7 @@ class _MoveBundleDialogState extends State<MoveBundleDialog> {
 
   Future<void> _submit() async {
     if (_stationId == null) {
-      setState(() => _error = "Select a station");
+      setState(() => _error = L10n.of(context).selectAStation);
       return;
     }
     setState(() {
@@ -130,25 +132,25 @@ class _MoveBundleDialogState extends State<MoveBundleDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text("Move Bundle", style: ThemeTokens.headingMedium.copyWith(fontSize: 18)),
+      title: Text(L10n.of(context).moveBundle, style: ThemeTokens.headingMedium.copyWith(fontSize: 18)),
       content: DropdownButtonFormField<int>(
         initialValue: _stationId,
         isExpanded: true,
-        hint: const Text("Move to Station"),
+        hint: Text(L10n.of(context).moveToStation),
         items: widget.stations
-            .map((s) => DropdownMenuItem(value: s.id, child: Text("${s.stationNumber} · ${s.operationName}", overflow: TextOverflow.ellipsis)))
+            .map((s) => DropdownMenuItem(value: s.id, child: Text("${s.stationNumber} · ${OperationNames.display(context, s.operationName)}", overflow: TextOverflow.ellipsis)))
             .toList(),
         onChanged: (v) => setState(() => _stationId = v),
       ),
       actions: [
         if (_error != null) Padding(padding: const EdgeInsets.only(right: 8.0), child: Text(_error!, style: ThemeTokens.caption.copyWith(color: ThemeTokens.error))),
-        TextButton(onPressed: _isSaving ? null : () => Navigator.of(context).pop(), child: const Text("Cancel")),
+        TextButton(onPressed: _isSaving ? null : () => Navigator.of(context).pop(), child: Text(L10n.of(context).cancel)),
         ElevatedButton(
           onPressed: _isSaving ? null : _submit,
           style: ElevatedButton.styleFrom(backgroundColor: ThemeTokens.primary, foregroundColor: Colors.white),
           child: _isSaving
               ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Text("Move"),
+              : Text(L10n.of(context).move),
         ),
       ],
     );
