@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../components/app_button.dart';
 import '../../components/custom_toast.dart';
 import '../../models/bundle.dart';
@@ -57,9 +58,11 @@ class _WipBundleScreenState extends State<WipBundleScreen> with SingleTickerProv
       _errorMessage = null;
     });
     try {
+      // Always force-refresh here - this screen polls every 6s for genuinely live WIP
+      // state, so the normal 15-minute cache would defeat the whole point of polling.
       final results = await Future.wait([
-        _apiService.listActive(),
-        _apiService.getWipSummary(),
+        _apiService.listActive(forceRefresh: true),
+        _apiService.getWipSummary(forceRefresh: true),
         _stationApiService.listStations(),
       ]);
       if (!mounted) return;
@@ -81,7 +84,7 @@ class _WipBundleScreenState extends State<WipBundleScreen> with SingleTickerProv
 
   Future<void> _createBundle() async {
     if (_stations.isEmpty) {
-      CustomToast.show(context, "No stations available", isError: true);
+      CustomToast.show(context, L10n.of(context).noStationsAvailable, isError: true);
       return;
     }
     await showDialog(
@@ -126,13 +129,13 @@ class _WipBundleScreenState extends State<WipBundleScreen> with SingleTickerProv
     return Scaffold(
       backgroundColor: ThemeTokens.background,
       appBar: AppBar(
-        title: Text("WIP / Bundle Tracking", style: ThemeTokens.headingMedium.copyWith(fontSize: 17)),
+        title: Text(L10n.of(context).wipBundleTracking, style: ThemeTokens.headingMedium.copyWith(fontSize: 17)),
         bottom: TabBar(
           controller: _tabController,
           labelColor: ThemeTokens.primary,
           unselectedLabelColor: ThemeTokens.textLight,
           indicatorColor: ThemeTokens.primary,
-          tabs: const [Tab(text: "Active Bundles"), Tab(text: "Station Queues")],
+          tabs: [Tab(text: L10n.of(context).activeBundles), Tab(text: L10n.of(context).stationQueues)],
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -152,9 +155,9 @@ class _WipBundleScreenState extends State<WipBundleScreen> with SingleTickerProv
     if (_errorMessage != null) {
       return OpsStateMessage(
         icon: Icons.wifi_off_rounded,
-        title: "Couldn't load WIP data",
+        title: L10n.of(context).couldnTLoadWipData,
         body: _errorMessage!,
-        action: SizedBox(width: 180, child: AppPrimaryButton(label: "Retry", onPressed: _load)),
+        action: SizedBox(width: 180, child: AppPrimaryButton(label: L10n.of(context).retry, onPressed: _load)),
       );
     }
     return TabBarView(
