@@ -6,6 +6,12 @@ class ProductionEntry {
   final String stationNumber;
   final String operationName;
   final String shiftDate;
+
+  /// Clock times as "HH:mm:ss", or null for entries logged before hourly slots
+  /// existed. Those older entries are shown under the day rather than an hour.
+  final String? startTime;
+  final String? endTime;
+
   final int piecesProduced;
   final double timeOnMachineMinutes;
   final double samEarned;
@@ -27,7 +33,20 @@ class ProductionEntry {
     required this.wagesEarned,
     required this.efficiencyPct,
     required this.classification,
+    this.startTime,
+    this.endTime,
   });
+
+  /// Hour this entry belongs to (0-23), or null if it predates slot tracking.
+  int? get startHour {
+    final t = startTime;
+    if (t == null || t.length < 2) return null;
+    return int.tryParse(t.substring(0, 2));
+  }
+
+  /// "09:00" style label for display, or null when there is no recorded time.
+  String? get startLabel => startTime?.substring(0, 5);
+  String? get endLabel => endTime?.substring(0, 5);
 
   factory ProductionEntry.fromJson(Map<String, dynamic> json) {
     return ProductionEntry(
@@ -38,6 +57,8 @@ class ProductionEntry {
       stationNumber: json['stationNumber'] as String,
       operationName: json['operationName'] as String,
       shiftDate: json['shiftDate'] as String,
+      startTime: json['startTime'] as String?,
+      endTime: json['endTime'] as String?,
       piecesProduced: (json['piecesProduced'] as num).toInt(),
       timeOnMachineMinutes: (json['timeOnMachineMinutes'] as num).toDouble(),
       samEarned: (json['samEarned'] as num).toDouble(),
@@ -53,14 +74,21 @@ class LogProductionEntryRequest {
   final int stationId;
   final String shiftDate;
   final int piecesProduced;
-  final double timeOnMachineMinutes;
+
+  /// "HH:mm:ss" clock times. The backend derives the duration from these, so
+  /// timeOnMachineMinutes is not sent by the hourly-slot flow.
+  final String? startTime;
+  final String? endTime;
+  final double? timeOnMachineMinutes;
 
   const LogProductionEntryRequest({
     required this.employeeId,
     required this.stationId,
     required this.shiftDate,
     required this.piecesProduced,
-    required this.timeOnMachineMinutes,
+    this.startTime,
+    this.endTime,
+    this.timeOnMachineMinutes,
   });
 
   Map<String, dynamic> toJson() => {
@@ -68,6 +96,8 @@ class LogProductionEntryRequest {
         'stationId': stationId,
         'shiftDate': shiftDate,
         'piecesProduced': piecesProduced,
-        'timeOnMachineMinutes': timeOnMachineMinutes,
+        if (startTime != null) 'startTime': startTime,
+        if (endTime != null) 'endTime': endTime,
+        if (timeOnMachineMinutes != null) 'timeOnMachineMinutes': timeOnMachineMinutes,
       };
 }
