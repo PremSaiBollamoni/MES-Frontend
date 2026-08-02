@@ -1,0 +1,125 @@
+import 'package:flutter/widgets.dart';
+
+/// Telugu spellings of employee names.
+///
+/// These are transliterations - the same name written in Telugu script, not translated.
+/// Names are stored in English in the database (shared with HRMS, payroll and reports),
+/// so they are mapped to a Telugu display string at render time rather than renamed at
+/// source.
+///
+/// Reviewed and corrected by the factory team. Anything not in this map falls through to
+/// the stored English name, so a newly added employee still displays correctly - just
+/// untransliterated until their name is added here.
+class EmployeeNames {
+  const EmployeeNames._();
+
+  static const Map<String, String> _te = {
+    'A.Mariamma': 'ఎ. మరియమ్మ',
+    'AdiLakshmi': 'ఆదిలక్ష్మి',
+    'Anuhya': 'అనుష',
+    'Asmathbegum': 'అస్మత్‌బేగం',
+    'B,Rani': 'బి. రాణి',
+    'B,Suribabu': 'బి. సూరిబాబు',
+    'B.blessy': 'బి. బ్లెస్సీ',
+    'B.Chiru': 'బి. చిరు',
+    'B.Sravanthi': 'బి. శ్రావంతి',
+    'B.Sunilkumar': 'బి. సునీల్ కుమార్',
+    'B.Sunitha': 'బి. సునీత',
+    'Bhavani,b': 'భవాని బి.',
+    'C.Nagamani': 'సి. నాగమణి',
+    'Ch.Balayesu': 'సి.హెచ్. బాలయేసు',
+    'Ch.Lakshmireddy': 'సి.హెచ్. లక్ష్మిరెడ్డి',
+    'Ch.Rajesh': 'సి.హెచ్. రాజేష్',
+    'Ch.Shanti': 'సి.హెచ్. శాంతి',
+    'ChandraKumari': 'చంద్రకుమారి',
+    'D,Narsamma': 'డి. నర్సమ్మ',
+    'D.Anuradha': 'డి. అనురాధ',
+    'D.Deevina': 'డి. దీవిన',
+    'D.Sravanthi': 'డి. శ్రావంతి',
+    'D.Vishnupriya': 'డి. విష్ణుప్రియ',
+    'Debasis': 'దేబాశిస్',
+    'E.Kavya': 'ఇ. కావ్య',
+    'G,Mamatha': 'జి. మమత',
+    'G,Mani': 'జి. మణి',
+    'G.Sireesha': 'జి. శిరీష',
+    'G.Sivaleela': 'జి. శివలీల',
+    'J.Sowjanya': 'జె. సౌజన్య',
+    'K.Aruna': 'కె. అరుణ',
+    'K.Kanakadurga': 'కె. కనకదుర్గ',
+    'K.Lakshmi': 'కె. లక్ష్మి',
+    'K.Sai': 'కె. సాయి',
+    'K.Sowbhagya': 'కె. సౌభాగ్య',
+    'KasiRathalu': 'కాశీరత్నాలు',
+    'Keerthi,B': 'కీర్తి బి.',
+    'Koteswaramma': 'కోటేశ్వరమ్మ',
+    'L.Chitti': 'ఎల్. చిట్టి',
+    'Lavanya': 'లావణ్య',
+    'M.Keerthana': 'ఎం. కీర్తన',
+    'M.Krishnakumari': 'ఎం. కృష్ణకుమారి',
+    'M.Nagamani': 'ఎం. నాగమణి',
+    'M.Saipriya': 'ఎం. సాయిప్రియ',
+    'M.Swapna': 'ఎం. స్వప్న',
+    'Mahalakshmi': 'మహాలక్ష్మి',
+    'Mastanbee': 'మస్తాన్‌బీ',
+    'Md.Ramizunisa': 'ఎం.డి. రమీజునిసా',
+    'Md.Reshma': 'ఎం.డి. రేష్మ',
+    'N.Surendra': 'ఎన్. సురేంద్ర',
+    'P.Ayesha': 'పి. ఆయేషా',
+    'P.Dildhar': 'పి. దిల్దార్',
+    'P.Shahina': 'పి. షహీనా',
+    'P.Sowmya': 'పి. సౌమ్య',
+    'P.Venkaiamma': 'పి. వెంకయ్యమ్మ',
+    'P.Vijaya': 'పి. విజయ',
+    'PREM SAI BOLLAMONI': 'ప్రేమ్ సాయి బొల్లమోని',
+    'Premsai': 'ప్రేమ్ సాయి',
+    'Rajini': 'రజిని',
+    'Ravanamma': 'రావణమ్మ',
+    'S,Malathi': 'ఎస్. మాలతి',
+    'S.Mariamma': 'ఎస్.కె. మరియంబీ',
+    'S.Munni': 'ఎస్. మున్ని',
+    'S.Noori': 'ఎస్. నూరి',
+    'S.Praneeth': 'ఎస్. ప్రణీత్',
+    'S.Rukhiya': 'ఎస్. రుఖియా',
+    'SaiRajani': 'సాయిరజని',
+    'Sampathamma': 'సంపతమ్మ',
+    'shakila': 'షకీలా',
+    'Sk.Ashrifun': 'ఎస్.కె. అష్రిఫున్',
+    'Sk.Fathima': 'ఎస్.కె. ఫాతిమా',
+    'Sk.Jaina': 'ఎస్.కె. జైనా',
+    'Sk.Khadarbee': 'ఎస్.కె. ఖాదర్‌బీ',
+    'Sk.Naseera': 'ఎస్.కె. నసీరా',
+    'Sk.Salima': 'ఎస్.కె. సలీమా',
+    'Sk.Shabana': 'ఎస్.కె. షబానా',
+    'Sk.Shakira': 'ఎస్.కె. షకీరా',
+    'Sk.Sharmila': 'ఎస్.కె. శర్మిల',
+    'Srilekha': 'శ్రీలేఖ',
+    'Surekha': 'సురేఖ',
+    'Suryakala': 'సూర్యకళ',
+    'T,nani': 'టి. నాని',
+    'T.bhavani': 'టి. భవాని',
+    'T.Geethapadma': 'టి. గీతపద్మ',
+    'T.Gowthami': 'టి. గౌతమి',
+    'T.Jyothi': 'టి. జ్యోతి',
+    'T.Nagamani': 'టి. నాగమణి',
+    'T.Preethi': 'టి. ప్రీతి',
+    'T.Sireesha': 'టి. శిరీష',
+    'Triveni': 'త్రివేణి',
+    'U.Durga': 'యు. దుర్గ',
+    'U.Nagamma': 'యు. నాగమ్మ',
+    'U.Sivaparvathi': 'యు. శివపార్వతి',
+    'Umadevi': 'ఉమాదేవి',
+    'V.Jyothi': 'వి. జ్యోతి',
+    'V.Manasamadhuri': 'వి. మానసమాధురి',
+    'V.Rajesh': 'వి. రాజేష్',
+    'VEGI JOSH SWAROOP': 'వేగి జోష్ స్వరూప్',
+    'Venkatalakshmi': 'వెంకటలక్ష్మి',
+    'Vl.Satyanarayana': 'వి.ఎల్. సత్యనారాయణ',
+  };
+
+  /// Telugu spelling of [name] when the app is in Telugu, otherwise the stored name.
+  static String display(BuildContext context, String? name) {
+    if (name == null || name.isEmpty) return '';
+    if (Localizations.localeOf(context).languageCode != 'te') return name;
+    return _te[name] ?? _te[name.trim()] ?? name;
+  }
+}
