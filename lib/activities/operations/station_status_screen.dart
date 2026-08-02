@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../utils/operation_names.dart';
+import '../../l10n/app_localizations.dart';
 import '../../components/app_button.dart';
 import '../../models/station_status.dart';
 import '../../services/station_status_api_service.dart';
@@ -37,13 +39,13 @@ class _StationStatusScreenState extends State<StationStatusScreen> with SingleTi
     super.dispose();
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool forceRefresh = false}) async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
     try {
-      final statuses = await _apiService.getStatus(formatIsoDate(_date));
+      final statuses = await _apiService.getStatus(formatIsoDate(_date), forceRefresh: forceRefresh);
       if (!mounted) return;
       setState(() {
         _statuses = statuses;
@@ -63,7 +65,7 @@ class _StationStatusScreenState extends State<StationStatusScreen> with SingleTi
     return Scaffold(
       backgroundColor: ThemeTokens.background,
       appBar: AppBar(
-        title: Text("Station Status", style: ThemeTokens.headingMedium.copyWith(fontSize: 17)),
+        title: Text(L10n.of(context).stationStatus, style: ThemeTokens.headingMedium.copyWith(fontSize: 17)),
         bottom: (!_isLoading && _errorMessage == null && _statuses.isNotEmpty)
             ? TabBar(
                 controller: _tabController,
@@ -102,23 +104,23 @@ class _StationStatusScreenState extends State<StationStatusScreen> with SingleTi
     if (_errorMessage != null) {
       return OpsStateMessage(
         icon: Icons.wifi_off_rounded,
-        title: "Couldn't load station status",
+        title: L10n.of(context).couldnTLoadStationStatus,
         body: _errorMessage!,
-        action: SizedBox(width: 180, child: AppPrimaryButton(label: "Retry", onPressed: _load)),
+        action: SizedBox(width: 180, child: AppPrimaryButton(label: L10n.of(context).retry, onPressed: _load)),
       );
     }
     if (_statuses.isEmpty) {
-      return const OpsStateMessage(
+      return OpsStateMessage(
         icon: Icons.dashboard_customize_outlined,
-        title: "No stations found",
-        body: "Set up stations first, then check back here.",
+        title: L10n.of(context).noStationsFound,
+        body: L10n.of(context).setUpStationsFirstThen,
       );
     }
     return TabBarView(
       controller: _tabController,
       children: [
-        _buildList(_needsAttention, Icons.check_circle_outline, "All stations covered", "No unallocated or unmanned stations for this shift date."),
-        _buildList(_manned, Icons.groups_outlined, "No manned stations", "Assign operators to stations to see them here."),
+        _buildList(_needsAttention, Icons.check_circle_outline, L10n.of(context).allStationsCovered, L10n.of(context).noUnallocatedOrUnmannedStations),
+        _buildList(_manned, Icons.groups_outlined, L10n.of(context).noMannedStations, L10n.of(context).assignOperatorsToStationsTo),
       ],
     );
   }
@@ -127,7 +129,7 @@ class _StationStatusScreenState extends State<StationStatusScreen> with SingleTi
     if (items.isEmpty) {
       return RefreshIndicator(
         color: ThemeTokens.primary,
-        onRefresh: _load,
+        onRefresh: () => _load(forceRefresh: true),
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
           children: [
@@ -139,7 +141,7 @@ class _StationStatusScreenState extends State<StationStatusScreen> with SingleTi
     }
     return RefreshIndicator(
       color: ThemeTokens.primary,
-      onRefresh: _load,
+      onRefresh: () => _load(forceRefresh: true),
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
         itemCount: items.length,
@@ -180,7 +182,7 @@ class _StatusRow extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Flexible(child: Text(status.operationName, style: ThemeTokens.headingMedium.copyWith(fontSize: 15), overflow: TextOverflow.ellipsis)),
+                    Flexible(child: Text(OperationNames.display(context, status.operationName), style: ThemeTokens.headingMedium.copyWith(fontSize: 15), overflow: TextOverflow.ellipsis)),
                     if (status.critical) ...[
                       const SizedBox(width: 8.0),
                       Container(
