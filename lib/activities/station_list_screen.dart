@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../utils/operation_names.dart';
+import '../l10n/app_localizations.dart';
 import '../components/app_button.dart';
 import '../models/station.dart';
 import '../services/station_api_service.dart';
@@ -38,13 +40,13 @@ class _StationListScreenState extends State<StationListScreen> {
     super.dispose();
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool forceRefresh = false}) async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
     try {
-      final stations = await _apiService.listStations();
+      final stations = await _apiService.listStations(forceRefresh: forceRefresh);
       if (!mounted) return;
       setState(() {
         _stations = stations;
@@ -104,7 +106,7 @@ class _StationListScreenState extends State<StationListScreen> {
                   controller: _searchController,
                   style: ThemeTokens.inputText,
                   decoration: InputDecoration(
-                    hintText: "Search by station or operation",
+                    hintText: L10n.of(context).searchByStationOrOperation,
                     hintStyle: ThemeTokens.hintText,
                     prefixIcon: const Icon(Icons.search_rounded, size: 20, color: ThemeTokens.textLight),
                     filled: true,
@@ -142,7 +144,7 @@ class _StationListScreenState extends State<StationListScreen> {
               const SizedBox(height: 12.0),
               Text(_errorMessage!, style: ThemeTokens.bodyMedium, textAlign: TextAlign.center),
               const SizedBox(height: 16.0),
-              SizedBox(width: 180, child: AppPrimaryButton(label: "Retry", onPressed: _load)),
+              SizedBox(width: 180, child: AppPrimaryButton(label: L10n.of(context).retry, onPressed: _load)),
             ],
           ),
         ),
@@ -165,7 +167,7 @@ class _StationListScreenState extends State<StationListScreen> {
 
     return RefreshIndicator(
       color: ThemeTokens.primary,
-      onRefresh: _load,
+      onRefresh: () => _load(forceRefresh: true),
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(24, 8, 24, 96),
         itemCount: list.length,
@@ -203,7 +205,7 @@ class _SummaryStrip extends StatelessWidget {
         stat("Stations", "${stations.length}"),
         stat("S1", "$s1"),
         stat("S2", "$s2"),
-        stat("Total SAM", totalSam.toStringAsFixed(1)),
+        stat(L10n.of(context).totalSam, totalSam.toStringAsFixed(1)),
       ],
     );
   }
@@ -242,7 +244,7 @@ class _ZoneFilterBar extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Row(children: [chip("ALL", "All Zones"), chip("S1", "S1 · Sub Assembly"), chip("S2", "S2 · Full Garment")]),
+      child: Row(children: [chip("ALL", L10n.of(context).allZones), chip("S1", L10n.of(context).s1SubAssembly), chip("S2", L10n.of(context).s2FullGarment)]),
     );
   }
 }
@@ -282,7 +284,7 @@ class _StationRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(station.operationName, style: ThemeTokens.headingMedium.copyWith(fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(OperationNames.display(context, station.operationName), style: ThemeTokens.headingMedium.copyWith(fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 4.0),
                     Text(
                       "${station.zone}  ·  SAM ${station.sam}  ·  ${station.targetPiecesPerDay} pcs/day",
