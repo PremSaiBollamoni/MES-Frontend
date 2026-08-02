@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../components/app_button.dart';
 import '../services/api_service.dart';
 import '../services/auth_session.dart';
@@ -50,9 +51,9 @@ class _SplashScreenState extends State<SplashScreen> {
     } else {
       setState(() {
         _isConnecting = false;
-        _errorMessage = "Unable to connect to backend at ${_apiService.baseUrl}";
+        _errorMessage = L10n.of(context).splashUnableToConnect(_apiService.baseUrl);
       });
-      CustomToast.show(context, "Offline. Ensure the backend is running.", isError: true);
+      CustomToast.show(context, L10n.of(context).splashOffline, isError: true);
     }
   }
 
@@ -79,7 +80,7 @@ class _SplashScreenState extends State<SplashScreen> {
               const SizedBox(height: 24.0),
               Text("MES", style: ThemeTokens.headingDisplay.copyWith(fontSize: 26)),
               const SizedBox(height: 6.0),
-              Text("Manufacturing Execution System", style: ThemeTokens.bodyMedium),
+              Text(L10n.of(context).appTagline, style: ThemeTokens.bodyMedium),
               const SizedBox(height: 40.0),
               if (_isConnecting)
                 SizedBox(
@@ -94,14 +95,14 @@ class _SplashScreenState extends State<SplashScreen> {
                 Icon(Icons.wifi_off_rounded, color: ThemeTokens.error, size: 24),
                 const SizedBox(height: 10.0),
                 Text(
-                  _errorMessage ?? "Connection offline",
+                  _errorMessage ?? L10n.of(context).connectionOffline,
                   style: ThemeTokens.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20.0),
                 SizedBox(
                   width: 180,
-                  child: AppPrimaryButton(label: "Retry", onPressed: _performConnectionCheck),
+                  child: AppPrimaryButton(label: L10n.of(context).retry, onPressed: _performConnectionCheck),
                 ),
               ],
             ],
