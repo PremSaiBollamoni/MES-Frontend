@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../components/app_button.dart';
 import '../components/custom_toast.dart';
 import '../components/employee_card.dart';
@@ -36,7 +37,9 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
   void initState() {
     super.initState();
     _loadEmployees();
-    _loadUnlinkedCount();
+    // Deliberately NOT auto-checking HRMS here - it's a slow external call (through a
+    // proxy/tunnel to a firewalled server) and would re-fire every time this screen is
+    // revisited. The sync icon/banner is populated on-demand via _openHrmsImport instead.
     _searchController.addListener(() {
       setState(() => _query = _searchController.text.trim().toLowerCase());
     });
@@ -48,13 +51,13 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
     super.dispose();
   }
 
-  Future<void> _loadEmployees() async {
+  Future<void> _loadEmployees({bool forceRefresh = false}) async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
     try {
-      final employees = await _apiService.listEmployees();
+      final employees = await _apiService.listEmployees(forceRefresh: forceRefresh);
       if (!mounted) return;
       setState(() {
         _employees = employees;
@@ -97,7 +100,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
     );
     if (created == true) {
       if (!mounted) return;
-      CustomToast.show(context, "Employee added successfully");
+      CustomToast.show(context, L10n.of(context).employeeAddedSuccessfully);
       _loadEmployees();
     }
   }
@@ -147,14 +150,14 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
       builder: (dialogContext) => AlertDialog(
         title: Text("Delete $count employee(s)?", style: ThemeTokens.headingMedium.copyWith(fontSize: 18)),
         content: Text(
-          "This permanently removes the selected employee(s). Anyone with associated records elsewhere will be skipped automatically.",
+          L10n.of(context).thisPermanentlyRemovesTheSelected,
           style: ThemeTokens.bodyMedium,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text("Cancel")),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(L10n.of(context).cancel)),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text("Delete", style: TextStyle(color: ThemeTokens.error, fontWeight: FontWeight.w700)),
+            child: Text(L10n.of(context).delete, style: TextStyle(color: ThemeTokens.error, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -216,13 +219,13 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                   controller: _searchController,
                   style: ThemeTokens.inputText,
                   decoration: InputDecoration(
-                    hintText: "Search employees",
+                    hintText: L10n.of(context).searchEmployees,
                     hintStyle: ThemeTokens.hintText,
                     prefixIcon: const Icon(Icons.search_rounded, size: 20, color: ThemeTokens.textLight),
                     suffixIcon: IconButton(
                       icon: Icon(Icons.sync_rounded, size: 20, color: _unlinkedHrmsCount > 0 ? ThemeTokens.warning : ThemeTokens.textLight),
                       onPressed: _openHrmsImport,
-                      tooltip: "Sync with HRMS",
+                      tooltip: L10n.of(context).syncWithHrms,
                     ),
                     filled: true,
                     fillColor: ThemeTokens.surfaceSunken,
@@ -296,7 +299,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
           ),
           TextButton(
             onPressed: _isDeleting ? null : _selectAllFiltered,
-            child: Text("Select all", style: ThemeTokens.bodyMedium.copyWith(color: ThemeTokens.primary, fontWeight: FontWeight.w700)),
+            child: Text(L10n.of(context).selectAll, style: ThemeTokens.bodyMedium.copyWith(color: ThemeTokens.primary, fontWeight: FontWeight.w700)),
           ),
           IconButton(
             icon: _isDeleting
@@ -360,11 +363,11 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
             children: [
               const Icon(Icons.wifi_off_rounded, color: ThemeTokens.error, size: 40),
               const SizedBox(height: 12.0),
-              Text("Couldn't load employees", style: ThemeTokens.headingMedium.copyWith(fontSize: 16)),
+              Text(L10n.of(context).couldnTLoadEmployees, style: ThemeTokens.headingMedium.copyWith(fontSize: 16)),
               const SizedBox(height: 6.0),
               Text(_errorMessage!, style: ThemeTokens.bodyMedium, textAlign: TextAlign.center),
               const SizedBox(height: 16.0),
-              AppPrimaryButton(label: "Retry", onPressed: _loadEmployees),
+              AppPrimaryButton(label: L10n.of(context).retry, onPressed: _loadEmployees),
             ],
           ),
         ),
@@ -383,12 +386,12 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
               Icon(Icons.groups_outlined, color: ThemeTokens.textLight, size: 40),
               const SizedBox(height: 12.0),
               Text(
-                _employees.isEmpty ? "No employees yet" : "No employees match your search",
+                _employees.isEmpty ? L10n.of(context).noEmployeesYet : L10n.of(context).noEmployeesMatchYourSearch,
                 style: ThemeTokens.headingMedium.copyWith(fontSize: 16),
               ),
               const SizedBox(height: 6.0),
               Text(
-                _employees.isEmpty ? "Tap \"Add Employee\" to create the first record." : "Try a different search term.",
+                _employees.isEmpty ? L10n.of(context).tapAddEmployeeToCreate : L10n.of(context).tryADifferentSearchTerm,
                 style: ThemeTokens.bodyMedium,
                 textAlign: TextAlign.center,
               ),
@@ -400,7 +403,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
 
     return RefreshIndicator(
       color: ThemeTokens.primary,
-      onRefresh: _loadEmployees,
+      onRefresh: () => _loadEmployees(forceRefresh: true),
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 96),
         itemCount: filtered.length,
