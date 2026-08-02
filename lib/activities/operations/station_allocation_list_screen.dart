@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../utils/operation_names.dart';
+import '../../l10n/app_localizations.dart';
 import '../../components/app_button.dart';
 import '../../components/custom_toast.dart';
 import '../../models/roster_entry.dart';
@@ -38,7 +40,7 @@ class _StationAllocationListScreenState extends State<StationAllocationListScree
     _load();
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool forceRefresh = false}) async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -46,8 +48,8 @@ class _StationAllocationListScreenState extends State<StationAllocationListScree
     try {
       final date = formatIsoDate(_date);
       final results = await Future.wait([
-        _apiService.rosterForDate(date),
-        _stationApiService.listStations(),
+        _apiService.rosterForDate(date, forceRefresh: forceRefresh),
+        _stationApiService.listStations(forceRefresh: forceRefresh),
       ]);
       if (!mounted) return;
       setState(() {
@@ -87,7 +89,7 @@ class _StationAllocationListScreenState extends State<StationAllocationListScree
   Future<void> _openStation(Station station) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => StationAssignScreen(station: station, date: _date),
+        builder: (_) => StationAssignScreen(station: station, date: _date, roster: _roster),
       ),
     );
     _load();
@@ -98,10 +100,10 @@ class _StationAllocationListScreenState extends State<StationAllocationListScree
     return Scaffold(
       backgroundColor: ThemeTokens.background,
       appBar: AppBar(
-        title: Text("Operator Allocation", style: ThemeTokens.headingMedium.copyWith(fontSize: 17)),
+        title: Text(L10n.of(context).operatorAllocation, style: ThemeTokens.headingMedium.copyWith(fontSize: 17)),
         actions: [
           IconButton(
-            tooltip: "Sync attendance from HRMS",
+            tooltip: L10n.of(context).syncAttendanceFromHrms,
             onPressed: _isSyncing ? null : _syncAttendance,
             icon: _isSyncing
                 ? const SizedBox(
@@ -130,21 +132,21 @@ class _StationAllocationListScreenState extends State<StationAllocationListScree
     if (_errorMessage != null) {
       return OpsStateMessage(
         icon: Icons.wifi_off_rounded,
-        title: "Couldn't load stations",
+        title: L10n.of(context).couldnTLoadStations,
         body: _errorMessage!,
-        action: SizedBox(width: 180, child: AppPrimaryButton(label: "Retry", onPressed: _load)),
+        action: SizedBox(width: 180, child: AppPrimaryButton(label: L10n.of(context).retry, onPressed: _load)),
       );
     }
     if (_stations.isEmpty) {
-      return const OpsStateMessage(
+      return OpsStateMessage(
         icon: Icons.factory_outlined,
-        title: "No active stations",
-        body: "Create a station in Station Management before allocating operators.",
+        title: L10n.of(context).noActiveStations,
+        body: L10n.of(context).createAStationInStation,
       );
     }
     return RefreshIndicator(
       color: ThemeTokens.primary,
-      onRefresh: _load,
+      onRefresh: () => _load(forceRefresh: true),
       child: ListView(
         padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
         children: _stations.map(_buildStationRow).toList(),
@@ -192,7 +194,7 @@ class _StationAllocationListScreenState extends State<StationAllocationListScree
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("${station.stationNumber} - ${station.operationName}",
+                    Text("${station.stationNumber} - ${OperationNames.display(context, station.operationName)}",
                         style: ThemeTokens.bodyLarge.copyWith(fontSize: 15)),
                     const SizedBox(height: 4.0),
                     Text(station.zone, style: ThemeTokens.caption),
