@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../utils/employee_names.dart';
+import '../../utils/operation_names.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/employee_day_activity.dart';
 import '../../models/production_entry.dart';
 import '../../models/tracking_session.dart';
@@ -22,7 +25,7 @@ class EmployeeDayDetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: ThemeTokens.background,
       appBar: AppBar(
-        title: Text(activity.employeeName, style: ThemeTokens.headingMedium.copyWith(fontSize: 17)),
+        title: Text(EmployeeNames.display(context, activity.employeeName), style: ThemeTokens.headingMedium.copyWith(fontSize: 17)),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
@@ -37,10 +40,10 @@ class EmployeeDayDetailScreen extends StatelessWidget {
               ),
             ),
           if (activity.entries.isEmpty && activity.activeSession == null)
-            const OpsStateMessage(
+            OpsStateMessage(
               icon: Icons.speed_outlined,
-              title: "No activity for this day",
-              body: "This employee has no logged entries or tracking session on this date.",
+              title: L10n.of(context).noActivityForThisDay,
+              body: L10n.of(context).thisEmployeeHasNoLogged,
             ),
           for (final entry in activity.entries)
             _EntryRow(entry: entry, onTap: () => showProductionEntryDetailDialog(context, entry)),
@@ -77,7 +80,7 @@ class _InProgressCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("${session.stationNumber} · ${session.operationName}", style: ThemeTokens.headingMedium.copyWith(fontSize: 15)),
+                    Text("${session.stationNumber} · ${OperationNames.display(context, session.operationName)}", style: ThemeTokens.headingMedium.copyWith(fontSize: 15)),
                     const SizedBox(height: 4.0),
                     Text("${session.piecesIssued} pcs issued", style: ThemeTokens.caption),
                   ],
@@ -89,7 +92,7 @@ class _InProgressCard extends StatelessWidget {
                   color: ThemeTokens.warning.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(ThemeTokens.radiusPill),
                 ),
-                child: Text("IN PROGRESS", style: ThemeTokens.labelSmall.copyWith(color: ThemeTokens.warning, fontSize: 9)),
+                child: Text(L10n.of(context).inProgress, style: ThemeTokens.labelSmall.copyWith(color: ThemeTokens.warning, fontSize: 9)),
               ),
             ],
           ),
@@ -127,7 +130,7 @@ class _EntryRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("${entry.stationNumber} · ${entry.operationName}", style: ThemeTokens.headingMedium.copyWith(fontSize: 15), overflow: TextOverflow.ellipsis),
+                    Text("${entry.stationNumber} · ${OperationNames.display(context, entry.operationName)}", style: ThemeTokens.headingMedium.copyWith(fontSize: 15), overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 4.0),
                     Text("${entry.piecesProduced} pcs", style: ThemeTokens.caption),
                   ],
