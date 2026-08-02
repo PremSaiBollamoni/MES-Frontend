@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../utils/operation_names.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/stock_availability.dart';
 import '../../utils/theme_tokens.dart';
 
@@ -54,7 +56,7 @@ class StockAvailabilityRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.operationName, style: ThemeTokens.headingMedium.copyWith(fontSize: 15), overflow: TextOverflow.ellipsis),
+                  Text(OperationNames.display(context, item.operationName), style: ThemeTokens.headingMedium.copyWith(fontSize: 15), overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4.0),
                   Text("${item.stationNumber} · ${item.status}", style: ThemeTokens.caption.copyWith(color: _statusColor)),
                   const SizedBox(height: 2.0),
@@ -63,7 +65,7 @@ class StockAvailabilityRow extends StatelessWidget {
                     style: ThemeTokens.caption.copyWith(color: ThemeTokens.textSecondary),
                   ),
                   if (noThresholdSet)
-                    Text("no threshold set", style: ThemeTokens.caption.copyWith(color: ThemeTokens.textLight, fontSize: 11)),
+                    Text(L10n.of(context).noThresholdSet, style: ThemeTokens.caption.copyWith(color: ThemeTokens.textLight, fontSize: 11)),
                 ],
               ),
             ),
