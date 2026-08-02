@@ -8,10 +8,8 @@ class StockPositionApiService extends ApiClient {
   factory StockPositionApiService() => _instance;
   StockPositionApiService._internal();
 
-  Future<List<StockPosition>> listForDate(String date) async {
-    final response = await http
-        .get(Uri.parse("$baseUrl/api/stock-position?date=$date"), headers: headers)
-        .timeout(const Duration(seconds: 10));
+  Future<List<StockPosition>> listForDate(String date, {bool forceRefresh = false}) async {
+    final response = await cachedGet(Uri.parse("$baseUrl/api/stock-position?date=$date"), forceRefresh: forceRefresh);
     ensureSuccess(response);
     final List<dynamic> data = json.decode(response.body);
     return data.map((e) => StockPosition.fromJson(e as Map<String, dynamic>)).toList();
@@ -20,8 +18,9 @@ class StockPositionApiService extends ApiClient {
   Future<StockPosition> update(UpdateStockPositionRequest request) async {
     final response = await http
         .post(Uri.parse("$baseUrl/api/stock-position"), headers: headers, body: json.encode(request.toJson()))
-        .timeout(const Duration(seconds: 8));
+        .timeout(const Duration(seconds: 60));
     ensureSuccess(response);
+    ApiClient.invalidateCache();
     return StockPosition.fromJson(json.decode(response.body) as Map<String, dynamic>);
   }
 }
