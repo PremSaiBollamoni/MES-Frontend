@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../components/app_text_field.dart';
 import '../components/confirm_dialog.dart';
 import '../components/custom_toast.dart';
@@ -50,7 +51,7 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedActivities.isEmpty) {
-      CustomToast.show(context, "Select at least one activity", isError: true);
+      CustomToast.show(context, L10n.of(context).selectAtLeastOneActivity, isError: true);
       return;
     }
 
@@ -89,7 +90,7 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
 
     final confirmed = await showConfirmDialog(
       context,
-      title: "Delete Role",
+      title: L10n.of(context).deleteRole,
       message: "This will permanently delete the ${existing.roleName} role. This cannot be undone.",
     );
     if (!confirmed) return;
@@ -98,7 +99,7 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
     try {
       await _apiService.deleteRole(existing.roleId);
       if (!mounted) return;
-      CustomToast.show(context, "Role deleted");
+      CustomToast.show(context, L10n.of(context).roleDeleted);
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
@@ -115,7 +116,7 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
         backgroundColor: ThemeTokens.surfaceSolid,
         elevation: 0,
         title: Text(
-          widget.isEditMode ? "Edit Role" : "Add Role",
+          widget.isEditMode ? L10n.of(context).editRole : L10n.of(context).addRole,
           style: ThemeTokens.headingMedium.copyWith(color: ThemeTokens.textPrimary),
         ),
       ),
@@ -128,15 +129,15 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SectionCard(
-                  title: "Role Details",
+                  title: L10n.of(context).roleDetails,
                   icon: Icons.shield_outlined,
                   child: Column(
                     children: [
                       AppTextField(
-                        label: "Role Name",
+                        label: L10n.of(context).roleName,
                         controller: _roleNameController,
                         hint: "e.g. HR_MANAGER",
-                        validator: (v) => (v == null || v.trim().isEmpty) ? "Role name is required" : null,
+                        validator: (v) => (v == null || v.trim().isEmpty) ? L10n.of(context).roleNameIsRequired : null,
                       ),
                       if (widget.isEditMode) ...[
                         const SizedBox(height: 16.0),
@@ -145,7 +146,7 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
                           value: _active,
                           onChanged: (v) => setState(() => _active = v),
                           activeThumbColor: ThemeTokens.primary,
-                          title: Text("Active", style: ThemeTokens.labelSmall),
+                          title: Text(L10n.of(context).active, style: ThemeTokens.labelSmall),
                         ),
                       ],
                     ],
@@ -153,7 +154,7 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
                 ),
                 const SizedBox(height: 16.0),
                 SectionCard(
-                  title: "Accessible Activities",
+                  title: L10n.of(context).accessibleActivities,
                   icon: Icons.checklist_outlined,
                   child: Column(
                     children: ActivityCatalog.all.map((activity) {
@@ -194,7 +195,7 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2.5, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
                         )
-                      : Text(widget.isEditMode ? "Save Changes" : "Create Role", style: ThemeTokens.buttonText),
+                      : Text(widget.isEditMode ? L10n.of(context).saveChanges : L10n.of(context).createRole, style: ThemeTokens.buttonText),
                 ),
                 if (widget.isEditMode) ...[
                   const SizedBox(height: 12.0),
@@ -207,7 +208,7 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
                           )
                         : const Icon(Icons.delete_outline_rounded),
-                    label: const Text("Delete Role"),
+                    label: Text(L10n.of(context).deleteRole),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ThemeTokens.error,
                       foregroundColor: Colors.white,
