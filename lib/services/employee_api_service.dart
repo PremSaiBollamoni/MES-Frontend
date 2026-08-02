@@ -15,28 +15,22 @@ class EmployeeApiService extends ApiClient {
   factory EmployeeApiService() => _instance;
   EmployeeApiService._internal();
 
-  Future<List<RoleModel>> getRoles() async {
-    final response = await http
-        .get(Uri.parse("$baseUrl/api/roles"), headers: headers)
-        .timeout(const Duration(seconds: 8));
+  Future<List<RoleModel>> getRoles({bool forceRefresh = false}) async {
+    final response = await cachedGet(Uri.parse("$baseUrl/api/roles"), forceRefresh: forceRefresh);
     ensureSuccess(response);
     final List<dynamic> data = json.decode(response.body);
     return data.map((e) => RoleModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  Future<List<EmployeeSummary>> listEmployees() async {
-    final response = await http
-        .get(Uri.parse("$baseUrl/api/employees"), headers: headers)
-        .timeout(const Duration(seconds: 8));
+  Future<List<EmployeeSummary>> listEmployees({bool forceRefresh = false}) async {
+    final response = await cachedGet(Uri.parse("$baseUrl/api/employees"), forceRefresh: forceRefresh);
     ensureSuccess(response);
     final List<dynamic> data = json.decode(response.body);
     return data.map((e) => EmployeeSummary.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  Future<EmployeeDetail> getEmployee(int id) async {
-    final response = await http
-        .get(Uri.parse("$baseUrl/api/employees/$id"), headers: headers)
-        .timeout(const Duration(seconds: 8));
+  Future<EmployeeDetail> getEmployee(int id, {bool forceRefresh = false}) async {
+    final response = await cachedGet(Uri.parse("$baseUrl/api/employees/$id"), forceRefresh: forceRefresh);
     ensureSuccess(response);
     return EmployeeDetail.fromJson(json.decode(response.body) as Map<String, dynamic>);
   }
@@ -48,8 +42,9 @@ class EmployeeApiService extends ApiClient {
           headers: headers,
           body: json.encode(request.toJson()),
         )
-        .timeout(const Duration(seconds: 8));
+        .timeout(const Duration(seconds: 60));
     ensureSuccess(response);
+    ApiClient.invalidateCache();
     return EmployeeDetail.fromJson(json.decode(response.body) as Map<String, dynamic>);
   }
 
@@ -60,8 +55,9 @@ class EmployeeApiService extends ApiClient {
           headers: headers,
           body: json.encode(request.toJson()),
         )
-        .timeout(const Duration(seconds: 8));
+        .timeout(const Duration(seconds: 60));
     ensureSuccess(response);
+    ApiClient.invalidateCache();
     return EmployeeDetail.fromJson(json.decode(response.body) as Map<String, dynamic>);
   }
 
@@ -73,30 +69,34 @@ class EmployeeApiService extends ApiClient {
           headers: headers,
           body: json.encode({'roleCodes': roleCodes}),
         )
-        .timeout(const Duration(seconds: 8));
+        .timeout(const Duration(seconds: 60));
     ensureSuccess(response);
+    ApiClient.invalidateCache();
     return EmployeeDetail.fromJson(json.decode(response.body) as Map<String, dynamic>);
   }
 
   Future<void> deactivateEmployee(int id) async {
     final response = await http
         .patch(Uri.parse("$baseUrl/api/employees/$id/deactivate"), headers: headers)
-        .timeout(const Duration(seconds: 8));
+        .timeout(const Duration(seconds: 60));
     ensureSuccess(response);
+    ApiClient.invalidateCache();
   }
 
   Future<void> reactivateEmployee(int id) async {
     final response = await http
         .patch(Uri.parse("$baseUrl/api/employees/$id/reactivate"), headers: headers)
-        .timeout(const Duration(seconds: 8));
+        .timeout(const Duration(seconds: 60));
     ensureSuccess(response);
+    ApiClient.invalidateCache();
   }
 
   Future<void> deleteEmployee(int id) async {
     final response = await http
         .delete(Uri.parse("$baseUrl/api/employees/$id"), headers: headers)
-        .timeout(const Duration(seconds: 8));
+        .timeout(const Duration(seconds: 60));
     ensureSuccess(response);
+    ApiClient.invalidateCache();
   }
 
   Future<BulkDeleteResult> bulkDeleteEmployees(List<int> ids) async {
@@ -106,8 +106,9 @@ class EmployeeApiService extends ApiClient {
           headers: headers,
           body: json.encode({'ids': ids}),
         )
-        .timeout(const Duration(seconds: 20));
+        .timeout(const Duration(seconds: 60));
     ensureSuccess(response);
+    ApiClient.invalidateCache();
     return BulkDeleteResult.fromJson(json.decode(response.body) as Map<String, dynamic>);
   }
 
@@ -118,8 +119,9 @@ class EmployeeApiService extends ApiClient {
           headers: headers,
           body: json.encode(request.toJson()),
         )
-        .timeout(const Duration(seconds: 8));
+        .timeout(const Duration(seconds: 60));
     ensureSuccess(response);
+    ApiClient.invalidateCache();
     return EmployeeDetail.fromJson(json.decode(response.body) as Map<String, dynamic>);
   }
 
@@ -127,14 +129,19 @@ class EmployeeApiService extends ApiClient {
   /// [defaultDepartment], if given, overrides HRMS's own department for every imported
   /// employee; leave it null to keep each employee's HRMS department as-is.
   Future<BulkImportResult> importAllFromHrms(String defaultRoleCode, {String? defaultDepartment}) async {
+    // The backend re-fetches the unlinked-employee list from the external HRMS portal
+    // (no caching) before importing, and that live call alone has been measured at
+    // 40+ seconds from the deployed backend - 30s was too tight, same issue as the
+    // other HRMS-calling endpoints.
     final response = await http
         .post(
           Uri.parse("$baseUrl/api/employees/import-from-hrms/bulk"),
           headers: headers,
           body: json.encode({'defaultRoleCode': defaultRoleCode, 'defaultDepartment': defaultDepartment}),
         )
-        .timeout(const Duration(seconds: 30));
+        .timeout(const Duration(seconds: 60));
     ensureSuccess(response);
+    ApiClient.invalidateCache();
     return BulkImportResult.fromJson(json.decode(response.body) as Map<String, dynamic>);
   }
 
@@ -147,8 +154,9 @@ class EmployeeApiService extends ApiClient {
       request.headers['Authorization'] = 'Bearer $token';
     }
     request.files.add(http.MultipartFile.fromBytes('file', fileBytes, filename: filename));
-    final streamedResponse = await request.send().timeout(const Duration(seconds: 20));
+    final streamedResponse = await request.send().timeout(const Duration(seconds: 60));
     final response = await http.Response.fromStream(streamedResponse);
     ensureSuccess(response);
+    ApiClient.invalidateCache();
   }
 }
