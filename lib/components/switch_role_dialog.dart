@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../activities/main_shell_screen.dart';
 import '../models/user_model.dart';
 import '../services/api_service.dart';
@@ -67,9 +68,9 @@ class _SwitchRoleSheetState extends State<_SwitchRoleSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("SWITCH ROLE", style: ThemeTokens.labelSmall),
+            Text(L10n.of(context).switchRole, style: ThemeTokens.labelSmall),
             const SizedBox(height: 4.0),
-            Text("Choose which role to use for this session.", style: ThemeTokens.bodyMedium),
+            Text(L10n.of(context).chooseWhichRoleToUse, style: ThemeTokens.bodyMedium),
             const SizedBox(height: 20.0),
             ...widget.user.availableRoles.map((roleName) {
               final isCurrent = roleName == widget.user.role;
