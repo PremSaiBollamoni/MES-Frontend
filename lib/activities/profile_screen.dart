@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../utils/employee_names.dart';
+import '../l10n/app_localizations.dart';
 import '../components/app_date_field.dart';
 import '../components/app_dropdown_field.dart';
 import '../components/app_text_field.dart';
@@ -110,7 +112,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _profile = updated;
         _isEditing = false;
       });
-      CustomToast.show(context, "Profile updated");
+      CustomToast.show(context, L10n.of(context).profileUpdated);
     } catch (e) {
       if (!mounted) return;
       CustomToast.show(context, e.toString().replaceAll("Exception: ", ""), isError: true);
@@ -131,30 +133,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return StatefulBuilder(
           builder: (dialogContext, setDialogState) {
             return AlertDialog(
-              title: Text("Change Password", style: ThemeTokens.headingMedium.copyWith(fontSize: 18)),
+              title: Text(L10n.of(context).changePassword, style: ThemeTokens.headingMedium.copyWith(fontSize: 18)),
               content: Form(
                 key: formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     AppTextField(
-                      label: "Current Password",
+                      label: L10n.of(context).currentPassword,
                       controller: currentController,
                       obscureText: true,
-                      validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
+                      validator: (v) => (v == null || v.isEmpty) ? L10n.of(context).required : null,
                     ),
                     const SizedBox(height: 16.0),
                     AppTextField(
-                      label: "New Password",
+                      label: L10n.of(context).newPassword,
                       controller: newController,
                       obscureText: true,
-                      validator: (v) => (v == null || v.length < 6) ? "At least 6 characters" : null,
+                      validator: (v) => (v == null || v.length < 6) ? L10n.of(context).atLeast6Characters : null,
                     ),
                   ],
                 ),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text("Cancel")),
+                TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(L10n.of(context).cancel)),
                 ElevatedButton(
                   onPressed: isSubmitting
                       ? null
@@ -171,7 +173,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             if (!dialogContext.mounted) return;
                             Navigator.of(dialogContext).pop();
                             if (!mounted) return;
-                            CustomToast.show(context, "Password changed successfully");
+                            CustomToast.show(context, L10n.of(context).passwordChangedSuccessfully);
                           } catch (e) {
                             setDialogState(() => isSubmitting = false);
                             if (!dialogContext.mounted) return;
@@ -181,7 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: ElevatedButton.styleFrom(backgroundColor: ThemeTokens.primary, foregroundColor: Colors.white),
                   child: isSubmitting
                       ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text("Change Password"),
+                      : Text(L10n.of(context).changePassword),
                 ),
               ],
             );
@@ -217,7 +219,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Text(_errorMessage!, style: ThemeTokens.bodyMedium, textAlign: TextAlign.center),
               const SizedBox(height: 16.0),
-              AppPrimaryButton(label: "Retry", onPressed: _load),
+              AppPrimaryButton(label: L10n.of(context).retry, onPressed: _load),
             ],
           ),
         ),
@@ -232,27 +234,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ProfileHeroCard(
-            name: profile.name,
+            name: EmployeeNames.display(context, profile.name),
             subtitle: "${profile.username} · ${_formatRole(profile.roleCode)}",
             badgeIcon: RoleIcon.forRole(profile.roleCode),
           ),
           const SizedBox(height: 16.0),
           SectionCard(
-            title: "Work Details",
+            title: L10n.of(context).workDetails,
             icon: Icons.badge_outlined,
             child: Column(
               children: [
-                InfoRow(label: "Employee Code", value: profile.employeeCode),
-                InfoRow(label: "Department", value: profile.department ?? "—"),
-                InfoRow(label: "Designation", value: profile.designation ?? "—"),
-                InfoRow(label: "Shift", value: profile.shift ?? "—"),
-                InfoRow(label: "Date of Joining", value: _formatDate(profile.dateOfJoining)),
+                InfoRow(label: L10n.of(context).employeeCode, value: profile.employeeCode),
+                InfoRow(label: L10n.of(context).department, value: profile.department ?? "—"),
+                InfoRow(label: L10n.of(context).designation, value: profile.designation ?? "—"),
+                InfoRow(label: L10n.of(context).shift, value: profile.shift ?? "—"),
+                InfoRow(label: L10n.of(context).dateOfJoining, value: _formatDate(profile.dateOfJoining)),
               ],
             ),
           ),
           const SizedBox(height: 16.0),
           SectionCard(
-            title: "Personal & Emergency Contact",
+            title: L10n.of(context).personalEmergencyContact,
             icon: Icons.person_outline_rounded,
             child: _isEditing ? _buildEditForm() : _buildReadOnlyPersonal(profile),
           ),
@@ -268,12 +270,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             _resetFormFromProfile();
                             setState(() => _isEditing = false);
                           },
-                    child: const Text("Cancel"),
+                    child: Text(L10n.of(context).cancel),
                   ),
                 ),
                 const SizedBox(width: 12.0),
                 Expanded(
-                  child: AppPrimaryButton(label: "Save", onPressed: _saveProfile, isLoading: _isSaving),
+                  child: AppPrimaryButton(label: L10n.of(context).save, onPressed: _saveProfile, isLoading: _isSaving),
                 ),
               ],
             )
@@ -284,7 +286,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () => setState(() => _isEditing = true),
                     icon: const Icon(Icons.edit_outlined),
-                    label: const Text("Edit Profile"),
+                    label: Text(L10n.of(context).editProfile),
                   ),
                 ),
                 const SizedBox(width: 12.0),
@@ -292,7 +294,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: OutlinedButton.icon(
                     onPressed: _openChangePasswordDialog,
                     icon: const Icon(Icons.lock_outline_rounded),
-                    label: const Text("Change Password"),
+                    label: Text(L10n.of(context).changePassword),
                   ),
                 ),
               ],
@@ -305,13 +307,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildReadOnlyPersonal(EmployeeDetail profile) {
     return Column(
       children: [
-        InfoRow(label: "Date of Birth", value: _formatDate(profile.dateOfBirth)),
-        InfoRow(label: "Gender", value: profile.gender ?? "—"),
-        InfoRow(label: "Blood Group", value: profile.bloodGroup ?? "—"),
-        InfoRow(label: "Address", value: profile.address ?? "—"),
-        InfoRow(label: "Emergency Contact", value: profile.emergencyContactName ?? "—"),
-        InfoRow(label: "Emergency Number", value: profile.emergencyContactNumber ?? "—"),
-        InfoRow(label: "Relationship", value: profile.emergencyContactRelationship ?? "—"),
+        InfoRow(label: L10n.of(context).dateOfBirth, value: _formatDate(profile.dateOfBirth)),
+        InfoRow(label: L10n.of(context).gender, value: profile.gender ?? "—"),
+        InfoRow(label: L10n.of(context).bloodGroup, value: profile.bloodGroup ?? "—"),
+        InfoRow(label: L10n.of(context).address, value: profile.address ?? "—"),
+        InfoRow(label: L10n.of(context).emergencyContact, value: profile.emergencyContactName ?? "—"),
+        InfoRow(label: L10n.of(context).emergencyNumber, value: profile.emergencyContactNumber ?? "—"),
+        InfoRow(label: L10n.of(context).relationship, value: profile.emergencyContactRelationship ?? "—"),
       ],
     );
   }
@@ -319,36 +321,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildEditForm() {
     return Column(
       children: [
-        AppTextField(label: "Full Name", controller: _nameController),
+        AppTextField(label: L10n.of(context).fullName, controller: _nameController),
         const SizedBox(height: 16.0),
         AppDateField(
-          label: "Date of Birth",
+          label: L10n.of(context).dateOfBirth,
           value: _dateOfBirth,
           lastDate: DateTime.now(),
           onChanged: (v) => setState(() => _dateOfBirth = v),
         ),
         const SizedBox(height: 16.0),
         AppDropdownField<String>(
-          label: "Gender",
+          label: L10n.of(context).gender,
           value: _selectedGender,
-          hint: "Select gender",
-          items: const [
-            DropdownMenuItem(value: "MALE", child: Text("Male")),
-            DropdownMenuItem(value: "FEMALE", child: Text("Female")),
-            DropdownMenuItem(value: "OTHER", child: Text("Other")),
+          hint: L10n.of(context).selectGender,
+          items: [
+            DropdownMenuItem(value: "MALE", child: Text(L10n.of(context).male)),
+            DropdownMenuItem(value: "FEMALE", child: Text(L10n.of(context).female)),
+            DropdownMenuItem(value: "OTHER", child: Text(L10n.of(context).other)),
           ],
           onChanged: (v) => setState(() => _selectedGender = v),
         ),
         const SizedBox(height: 16.0),
-        AppTextField(label: "Blood Group", controller: _bloodGroupController, hint: "e.g. O+"),
+        AppTextField(label: L10n.of(context).bloodGroup, controller: _bloodGroupController, hint: "e.g. O+"),
         const SizedBox(height: 16.0),
-        AppTextField(label: "Address", controller: _addressController, maxLines: 3),
+        AppTextField(label: L10n.of(context).address, controller: _addressController, maxLines: 3),
         const SizedBox(height: 16.0),
-        AppTextField(label: "Emergency Contact Name", controller: _emergencyNameController),
+        AppTextField(label: L10n.of(context).emergencyContactName, controller: _emergencyNameController),
         const SizedBox(height: 16.0),
-        AppTextField(label: "Emergency Contact Number", controller: _emergencyNumberController, keyboardType: TextInputType.phone),
+        AppTextField(label: L10n.of(context).emergencyContactNumber, controller: _emergencyNumberController, keyboardType: TextInputType.phone),
         const SizedBox(height: 16.0),
-        AppTextField(label: "Relationship", controller: _emergencyRelationshipController, hint: "e.g. Father, Spouse"),
+        AppTextField(label: L10n.of(context).relationship, controller: _emergencyRelationshipController, hint: "e.g. Father, Spouse"),
       ],
     );
   }
