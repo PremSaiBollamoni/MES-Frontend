@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../utils/operation_names.dart';
+import '../../l10n/app_localizations.dart';
 import '../app_button.dart';
 import '../../models/station.dart';
 import '../../services/station_api_service.dart';
@@ -64,7 +66,7 @@ class _SamDashboardState extends State<SamDashboard> {
             children: [
               Text(_errorMessage!, style: ThemeTokens.bodyMedium, textAlign: TextAlign.center),
               const SizedBox(height: 16.0),
-              SizedBox(width: 180, child: AppPrimaryButton(label: "Retry", onPressed: _load)),
+              SizedBox(width: 180, child: AppPrimaryButton(label: L10n.of(context).retry, onPressed: _load)),
             ],
           ),
         ),
@@ -75,7 +77,7 @@ class _SamDashboardState extends State<SamDashboard> {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
-          child: Text("No stations set up yet.", style: ThemeTokens.bodyMedium, textAlign: TextAlign.center),
+          child: Text(L10n.of(context).noStationsSetUpYet, style: ThemeTokens.bodyMedium, textAlign: TextAlign.center),
         ),
       );
     }
@@ -94,10 +96,10 @@ class _SamDashboardState extends State<SamDashboard> {
         padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
         children: [
           LedgerHero(
-            eyebrow: "Stations Tracked",
+            eyebrow: L10n.of(context).stationsTracked,
             value: "${active.length}",
             stats: [
-              (value: totalSam.toStringAsFixed(1), label: "Total SAM"),
+              (value: totalSam.toStringAsFixed(1), label: L10n.of(context).totalSam),
               (value: "$s1Count", label: "S1"),
               (value: "$s2Count", label: "S2"),
             ],
@@ -109,7 +111,7 @@ class _SamDashboardState extends State<SamDashboard> {
             children: [
               Container(width: 18, height: 2, color: ThemeTokens.primary),
               const SizedBox(width: 10.0),
-              Text("HIGHEST SAM, RANKED", style: ThemeTokens.labelSmall),
+              Text(L10n.of(context).highestSamRanked, style: ThemeTokens.labelSmall),
             ],
           ),
           const SizedBox(height: 8.0),
@@ -153,7 +155,7 @@ class _BottleneckCallout extends StatelessWidget {
                 Text("BOTTLENECK", style: ThemeTokens.labelSmall.copyWith(color: ThemeTokens.error, fontSize: 10)),
                 const SizedBox(height: 3.0),
                 Text(
-                  "${station.stationNumber} · ${station.operationName}",
+                  "${station.stationNumber} · ${OperationNames.display(context, station.operationName)}",
                   style: ThemeTokens.headingMedium.copyWith(fontSize: 15),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -182,7 +184,7 @@ class _SamRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(station.operationName, style: ThemeTokens.bodyLarge.copyWith(fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(OperationNames.display(context, station.operationName), style: ThemeTokens.bodyLarge.copyWith(fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 2.0),
                 Text("${station.stationNumber}  ·  ${station.zone}", style: ThemeTokens.caption),
               ],
