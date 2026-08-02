@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/report.dart';
 import '../../utils/theme_tokens.dart';
 import '../operations/operations_widgets.dart';
@@ -25,10 +26,14 @@ class ReportListItem extends StatelessWidget {
 
   String _formatTimestamp(String iso) {
     try {
-      final dt = DateTime.parse(iso).toLocal();
+      // generatedAt comes from the backend as a naive Java LocalDateTime string (no
+      // timezone marker) representing the server's UTC clock - parse it as UTC
+      // explicitly, then convert to the device's local time for display, otherwise
+      // it's off by the device's UTC offset (and can even land on the wrong date).
+      final dt = DateTime.parse(iso.endsWith('Z') ? iso : "${iso}Z").toLocal();
       final hh = dt.hour.toString().padLeft(2, '0');
       final mm = dt.minute.toString().padLeft(2, '0');
-      return "${_formatDate(iso)} at $hh:$mm";
+      return "${formatLongDate(dt)} at $hh:$mm";
     } catch (_) {
       return iso;
     }
@@ -62,7 +67,7 @@ class ReportListItem extends StatelessWidget {
               ),
             ),
             IconButton(
-              tooltip: "Regenerate",
+              tooltip: L10n.of(context).regenerate,
               icon: const Icon(Icons.refresh_rounded, color: ThemeTokens.textLight, size: 20),
               onPressed: onRegenerate,
             ),
