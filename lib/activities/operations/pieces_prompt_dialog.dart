@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/theme_tokens.dart';
 
 /// Small numeric prompt reused for "pieces issued" (Start Tracking) and
@@ -20,7 +21,7 @@ Future<int?> showPiecesPromptDialog(
           void submit() {
             final value = int.tryParse(controller.text.trim());
             if (value == null || value <= 0) {
-              setState(() => error = "Enter a whole number greater than zero");
+              setState(() => error = L10n.of(context).enterAWholeNumberGreater);
               return;
             }
             Navigator.of(dialogContext).pop(value);
@@ -45,11 +46,11 @@ Future<int?> showPiecesPromptDialog(
               ],
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text("Cancel")),
+              TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(L10n.of(context).cancel)),
               ElevatedButton(
                 onPressed: submit,
                 style: ElevatedButton.styleFrom(backgroundColor: ThemeTokens.primary, foregroundColor: Colors.white),
-                child: const Text("Confirm"),
+                child: Text(L10n.of(context).confirm),
               ),
             ],
           );
