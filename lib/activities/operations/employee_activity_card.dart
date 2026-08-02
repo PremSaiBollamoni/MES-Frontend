@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../utils/employee_names.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/employee_day_activity.dart';
 import '../../utils/theme_tokens.dart';
 import 'operations_widgets.dart';
@@ -38,7 +40,7 @@ class EmployeeActivityCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(activity.employeeName, style: ThemeTokens.headingMedium.copyWith(fontSize: 15), overflow: TextOverflow.ellipsis),
+                    Text(EmployeeNames.display(context, activity.employeeName), style: ThemeTokens.headingMedium.copyWith(fontSize: 15), overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 4.0),
                     Text(activity.summaryLine, style: ThemeTokens.caption, maxLines: 2, overflow: TextOverflow.ellipsis),
                   ],
@@ -51,7 +53,7 @@ class EmployeeActivityCard extends StatelessWidget {
                     color: ThemeTokens.warning.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(ThemeTokens.radiusPill),
                   ),
-                  child: Text("IN PROGRESS", style: ThemeTokens.labelSmall.copyWith(color: ThemeTokens.warning, fontSize: 9)),
+                  child: Text(L10n.of(context).inProgress, style: ThemeTokens.labelSmall.copyWith(color: ThemeTokens.warning, fontSize: 9)),
                 )
               else if (activity.entries.length == 1)
                 Text(
