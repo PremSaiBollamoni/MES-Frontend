@@ -20,7 +20,10 @@ class ApiService {
       final response = await http.get(
         Uri.parse(healthUrl),
         headers: {'Content-Type': 'application/json'},
-      ).timeout(const Duration(seconds: 4)); // Fail fast for better UX
+        // Render's free tier spins the backend down after ~15 min idle; waking it
+        // (JVM boot + Flyway) can take 30-60s, so a short "fail fast" timeout here
+        // would misreport a cold start as the backend being down.
+      ).timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -46,7 +49,7 @@ class ApiService {
         'username': username,
         'password': password,
       }),
-    ).timeout(const Duration(seconds: 5));
+    ).timeout(const Duration(seconds: 60));
 
     final Map<String, dynamic> responseData = json.decode(response.body);
 
@@ -76,7 +79,7 @@ class ApiService {
         'preAuthToken': preAuthToken,
         'roleName': roleName,
       }),
-    ).timeout(const Duration(seconds: 5));
+    ).timeout(const Duration(seconds: 60));
 
     final Map<String, dynamic> responseData = json.decode(response.body);
 
@@ -104,7 +107,7 @@ class ApiService {
         if (token != null) 'Authorization': 'Bearer $token',
       },
       body: json.encode({'roleName': roleName}),
-    ).timeout(const Duration(seconds: 5));
+    ).timeout(const Duration(seconds: 60));
 
     final Map<String, dynamic> responseData = json.decode(response.body);
 
