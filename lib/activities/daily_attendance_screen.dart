@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../utils/employee_names.dart';
+import '../l10n/app_localizations.dart';
 import '../components/app_button.dart';
 import '../components/attendance_widgets.dart';
 import '../models/attendance.dart';
@@ -55,7 +57,7 @@ class _DailyAttendanceScreenState extends State<DailyAttendanceScreen> {
       if (!mounted) return;
       final message = e.toString().replaceAll("Exception: ", "");
       setState(() {
-        _notConfigured = message.contains("not configured");
+        _notConfigured = message.contains(L10n.of(context).notConfigured);
         _errorMessage = message;
         _isLoading = false;
       });
@@ -97,7 +99,7 @@ class _DailyAttendanceScreenState extends State<DailyAttendanceScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ThemeTokens.background,
-      appBar: AppBar(title: Text("Daily Attendance", style: ThemeTokens.headingMedium.copyWith(fontSize: 17))),
+      appBar: AppBar(title: Text(L10n.of(context).dailyAttendance, style: ThemeTokens.headingMedium.copyWith(fontSize: 17))),
       body: Column(
         children: [
           Padding(
@@ -120,18 +122,18 @@ class _DailyAttendanceScreenState extends State<DailyAttendanceScreen> {
   Widget _buildList() {
     if (_isLoading) return const Center(child: CircularProgressIndicator(color: ThemeTokens.primary));
     if (_notConfigured) {
-      return const AttendanceMessage(
+      return AttendanceMessage(
         icon: Icons.link_off_rounded,
-        title: "HRMS not connected yet",
-        body: "The biometric attendance portal hasn't been configured on the server yet.",
+        title: L10n.of(context).hrmsNotConnectedYet,
+        body: L10n.of(context).theBiometricAttendancePortalHasn,
       );
     }
     if (_errorMessage != null) {
       return AttendanceMessage(
         icon: Icons.wifi_off_rounded,
-        title: "Couldn't load that day",
+        title: L10n.of(context).couldnTLoadThatDay,
         body: _errorMessage!,
-        action: SizedBox(width: 180, child: AppPrimaryButton(label: "Retry", onPressed: _load)),
+        action: SizedBox(width: 180, child: AppPrimaryButton(label: L10n.of(context).retry, onPressed: _load)),
       );
     }
 
@@ -155,7 +157,7 @@ class _DailyAttendanceScreenState extends State<DailyAttendanceScreen> {
       itemBuilder: (context, index) {
         final r = list[index];
         return AttendanceRow(
-          name: r.employeeName,
+          name: EmployeeNames.display(context, r.employeeName),
           subtitle: [r.employeeCode, if (r.departmentName != null) r.departmentName!].join('  ·  '),
           times: "${_formatTime(r.firstIn)} → ${_formatTime(r.lastOut)}",
           status: r.status,
