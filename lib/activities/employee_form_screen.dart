@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../components/app_date_field.dart';
 import '../components/app_dropdown_field.dart';
 import '../components/app_text_field.dart';
@@ -180,7 +181,7 @@ class _EmployeeFormScreenState extends State<EmployeeFormScreen> {
         backgroundColor: ThemeTokens.surfaceSolid,
         elevation: 0,
         title: Text(
-          widget.isEditMode ? "Edit Employee" : "Add Employee",
+          widget.isEditMode ? L10n.of(context).editEmployee : L10n.of(context).addEmployee,
           style: ThemeTokens.headingMedium.copyWith(color: ThemeTokens.textPrimary),
         ),
       ),
@@ -204,7 +205,7 @@ class _EmployeeFormScreenState extends State<EmployeeFormScreen> {
               ElevatedButton(
                 onPressed: _loadRoles,
                 style: ElevatedButton.styleFrom(backgroundColor: ThemeTokens.primary, foregroundColor: Colors.white),
-                child: const Text("Retry"),
+                child: Text(L10n.of(context).retry),
               ),
             ],
           ),
@@ -220,54 +221,54 @@ class _EmployeeFormScreenState extends State<EmployeeFormScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SectionCard(
-              title: "Account & Role",
+              title: L10n.of(context).accountRole,
               icon: Icons.verified_user_outlined,
               child: Column(
                 children: [
                   if (widget.isEditMode) ...[
-                    Text("Username", style: ThemeTokens.labelSmall),
+                    Text(L10n.of(context).username, style: ThemeTokens.labelSmall),
                     const SizedBox(height: 8.0),
                     Text(widget.existing!.username, style: ThemeTokens.inputText),
                     const SizedBox(height: 16.0),
                   ] else ...[
                     Text(
-                      "A username (MES...) will be generated automatically on save.",
+                      L10n.of(context).aUsernameMesWillBe,
                       style: ThemeTokens.hintText,
                     ),
                     const SizedBox(height: 16.0),
                   ],
                   AppTextField(
                     label: widget.isEditMode
-                        ? "New Password (leave blank to keep unchanged)"
-                        : "Password (leave blank to use default: MES2K26)",
+                        ? L10n.of(context).newPasswordLeaveBlankTo
+                        : L10n.of(context).passwordLeaveBlankToUse,
                     controller: _passwordController,
                     obscureText: true,
                   ),
                   const SizedBox(height: 16.0),
                   AppTextField(
-                    label: "Full Name",
+                    label: L10n.of(context).fullName,
                     controller: _nameController,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? "Name is required" : null,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? L10n.of(context).nameIsRequired : null,
                   ),
                   const SizedBox(height: 16.0),
                   if (widget.isEditMode)
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        "Roles are managed from the \"Assign Roles\" action on the employee's detail screen.",
+                        L10n.of(context).rolesAreManagedFromAssignRoles,
                         style: ThemeTokens.hintText,
                       ),
                     )
                   else
                     AppDropdownField<String>(
-                      label: "Role",
+                      label: L10n.of(context).role,
                       value: _selectedRole,
-                      hint: "Select a role",
+                      hint: L10n.of(context).selectARole,
                       items: _roles
                           .map((r) => DropdownMenuItem(value: r.roleCode, child: Text(r.displayName)))
                           .toList(),
                       onChanged: (v) => setState(() => _selectedRole = v),
-                      validator: (v) => v == null ? "Role is required" : null,
+                      validator: (v) => v == null ? L10n.of(context).roleIsRequired : null,
                     ),
                   if (widget.isEditMode) ...[
                     const SizedBox(height: 16.0),
@@ -276,7 +277,7 @@ class _EmployeeFormScreenState extends State<EmployeeFormScreen> {
                       value: _active,
                       onChanged: (v) => setState(() => _active = v),
                       activeThumbColor: ThemeTokens.primary,
-                      title: Text("Active", style: ThemeTokens.labelSmall),
+                      title: Text(L10n.of(context).active, style: ThemeTokens.labelSmall),
                     ),
                   ],
                 ],
@@ -284,77 +285,77 @@ class _EmployeeFormScreenState extends State<EmployeeFormScreen> {
             ),
             const SizedBox(height: 16.0),
             SectionCard(
-              title: "Work Details",
+              title: L10n.of(context).workDetails,
               icon: Icons.badge_outlined,
               child: Column(
                 children: [
                   AppTextField(
-                    label: "Employee Code",
+                    label: L10n.of(context).employeeCode,
                     controller: _employeeCodeController,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? "Employee code is required" : null,
+                    validator: (v) => (v == null || v.trim().isEmpty) ? L10n.of(context).employeeCodeIsRequired : null,
                   ),
                   const SizedBox(height: 16.0),
-                  AppTextField(label: "Department", controller: _departmentController),
+                  AppTextField(label: L10n.of(context).department, controller: _departmentController),
                   const SizedBox(height: 16.0),
-                  AppTextField(label: "Designation", controller: _designationController),
+                  AppTextField(label: L10n.of(context).designation, controller: _designationController),
                   const SizedBox(height: 16.0),
                   AppDateField(
-                    label: "Date of Joining",
+                    label: L10n.of(context).dateOfJoining,
                     value: _dateOfJoining,
                     lastDate: DateTime.now(),
                     onChanged: (v) => setState(() => _dateOfJoining = v),
                   ),
                   const SizedBox(height: 16.0),
-                  AppTextField(label: "Shift", controller: _shiftController, hint: "e.g. GENERAL, MORNING, NIGHT"),
+                  AppTextField(label: L10n.of(context).shift, controller: _shiftController, hint: "e.g. GENERAL, MORNING, NIGHT"),
                 ],
               ),
             ),
             const SizedBox(height: 16.0),
             SectionCard(
-              title: "Personal Details",
+              title: L10n.of(context).personalDetails,
               icon: Icons.person_outline_rounded,
               child: Column(
                 children: [
                   AppDateField(
-                    label: "Date of Birth",
+                    label: L10n.of(context).dateOfBirth,
                     value: _dateOfBirth,
                     lastDate: DateTime.now(),
                     onChanged: (v) => setState(() => _dateOfBirth = v),
                   ),
                   const SizedBox(height: 16.0),
                   AppDropdownField<String>(
-                    label: "Gender",
+                    label: L10n.of(context).gender,
                     value: _selectedGender,
-                    hint: "Select gender",
-                    items: const [
-                      DropdownMenuItem(value: "MALE", child: Text("Male")),
-                      DropdownMenuItem(value: "FEMALE", child: Text("Female")),
-                      DropdownMenuItem(value: "OTHER", child: Text("Other")),
+                    hint: L10n.of(context).selectGender,
+                    items: [
+                      DropdownMenuItem(value: "MALE", child: Text(L10n.of(context).male)),
+                      DropdownMenuItem(value: "FEMALE", child: Text(L10n.of(context).female)),
+                      DropdownMenuItem(value: "OTHER", child: Text(L10n.of(context).other)),
                     ],
                     onChanged: (v) => setState(() => _selectedGender = v),
                   ),
                   const SizedBox(height: 16.0),
-                  AppTextField(label: "Blood Group", controller: _bloodGroupController, hint: "e.g. O+"),
+                  AppTextField(label: L10n.of(context).bloodGroup, controller: _bloodGroupController, hint: "e.g. O+"),
                   const SizedBox(height: 16.0),
-                  AppTextField(label: "Address", controller: _addressController, maxLines: 3),
+                  AppTextField(label: L10n.of(context).address, controller: _addressController, maxLines: 3),
                 ],
               ),
             ),
             const SizedBox(height: 16.0),
             SectionCard(
-              title: "Emergency Contact",
+              title: L10n.of(context).emergencyContact,
               icon: Icons.emergency_outlined,
               child: Column(
                 children: [
-                  AppTextField(label: "Contact Name", controller: _emergencyNameController),
+                  AppTextField(label: L10n.of(context).contactName, controller: _emergencyNameController),
                   const SizedBox(height: 16.0),
                   AppTextField(
-                    label: "Contact Number",
+                    label: L10n.of(context).contactNumber,
                     controller: _emergencyNumberController,
                     keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: 16.0),
-                  AppTextField(label: "Relationship", controller: _emergencyRelationshipController, hint: "e.g. Father, Spouse"),
+                  AppTextField(label: L10n.of(context).relationship, controller: _emergencyRelationshipController, hint: "e.g. Father, Spouse"),
                 ],
               ),
             ),
@@ -374,7 +375,7 @@ class _EmployeeFormScreenState extends State<EmployeeFormScreen> {
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2.5, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
                     )
-                  : Text(widget.isEditMode ? "Save Changes" : "Create Employee", style: ThemeTokens.buttonText),
+                  : Text(widget.isEditMode ? L10n.of(context).saveChanges : L10n.of(context).createEmployee, style: ThemeTokens.buttonText),
             ),
           ],
         ),
