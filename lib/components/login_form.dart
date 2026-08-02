@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../utils/theme_tokens.dart';
 import 'app_button.dart';
 import 'app_text_field.dart';
@@ -25,29 +26,30 @@ class LoginForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = L10n.of(context);
     return Form(
       key: formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AppTextField(
-            label: "Username",
+            label: t.loginUsername,
             controller: usernameController,
             hint: "e.g. MES001",
             prefixIcon: const Icon(Icons.badge_outlined, size: 20, color: ThemeTokens.textLight),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
-                return "Username is required";
+                return t.loginUsernameRequired;
               }
               return null;
             },
           ),
           const SizedBox(height: 18.0),
           AppTextField(
-            label: "Password",
+            label: t.loginPassword,
             controller: passwordController,
             obscureText: obscurePassword,
-            hint: "Enter your password",
+            hint: "••••••••",
             prefixIcon: const Icon(Icons.lock_outlined, size: 20, color: ThemeTokens.textLight),
             suffixIcon: IconButton(
               icon: Icon(
@@ -59,13 +61,13 @@ class LoginForm extends StatelessWidget {
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return "Password is required";
+                return t.loginPasswordRequired;
               }
               return null;
             },
           ),
           const SizedBox(height: 32.0),
-          AppPrimaryButton(label: "Sign in", onPressed: onLoginPressed, isLoading: isLoading),
+          AppPrimaryButton(label: t.loginSignIn, onPressed: onLoginPressed, isLoading: isLoading),
         ],
       ),
     );
