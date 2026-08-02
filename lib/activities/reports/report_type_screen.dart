@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../components/custom_toast.dart';
 import '../../models/report.dart';
 import '../../services/report_api_service.dart';
@@ -45,13 +46,13 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> {
     _loadReports();
   }
 
-  Future<void> _loadReports() async {
+  Future<void> _loadReports({bool forceRefresh = false}) async {
     setState(() {
       _loading = true;
       _loadError = null;
     });
     try {
-      final reports = await _service.listReports(widget.reportType);
+      final reports = await _service.listReports(widget.reportType, forceRefresh: forceRefresh);
       if (!mounted) return;
       setState(() {
         _reports = reports;
@@ -71,7 +72,7 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> {
     try {
       final report = await _service.generateReport(formatIsoDate(_date), widget.reportType, force: force);
       if (!mounted) return;
-      CustomToast.show(context, force ? "Report regenerated" : "Report ready");
+      CustomToast.show(context, force ? L10n.of(context).reportRegenerated : L10n.of(context).reportReady);
       await _loadReports();
       await _openReport(report);
     } catch (e) {
@@ -104,7 +105,7 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> {
         iconTheme: const IconThemeData(color: ThemeTokens.textPrimary),
       ),
       body: RefreshIndicator(
-        onRefresh: _loadReports,
+        onRefresh: () => _loadReports(forceRefresh: true),
         child: ListView(
           padding: const EdgeInsets.all(20.0),
           children: [
@@ -129,14 +130,14 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                           ),
                           const SizedBox(width: 12.0),
-                          Text("Generating AI report - this can take a minute...", style: ThemeTokens.buttonText),
+                          Text(L10n.of(context).generatingAiReportThisCan, style: ThemeTokens.buttonText),
                         ],
                       )
-                    : Text("Generate Report", style: ThemeTokens.buttonText),
+                    : Text(L10n.of(context).generateReport, style: ThemeTokens.buttonText),
               ),
             ),
             const SizedBox(height: 24.0),
-            Text("PREVIOUS REPORTS", style: ThemeTokens.labelSmall),
+            Text(L10n.of(context).previousReports, style: ThemeTokens.labelSmall),
             const SizedBox(height: 12.0),
             if (_loading)
               const Padding(
@@ -144,7 +145,7 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> {
                 child: Center(child: CircularProgressIndicator(color: ThemeTokens.primary)),
               )
             else if (_loadError != null)
-              OpsStateMessage(icon: Icons.error_outline_rounded, title: "Couldn't load reports", body: _loadError!)
+              OpsStateMessage(icon: Icons.error_outline_rounded, title: L10n.of(context).couldnTLoadReports, body: _loadError!)
             else if (_reports.isEmpty)
               OpsStateMessage(icon: Icons.summarize_rounded, title: widget.emptyTitle, body: widget.emptyBody)
             else
