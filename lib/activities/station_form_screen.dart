@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../components/app_button.dart';
 import '../components/app_dropdown_field.dart';
 import '../components/app_text_field.dart';
@@ -113,7 +114,7 @@ class _StationFormScreenState extends State<StationFormScreen> {
 
     final confirmed = await showConfirmDialog(
       context,
-      title: "Delete Station",
+      title: L10n.of(context).deleteStation,
       message: "This will permanently delete ${existing.stationNumber} (${existing.operationName}). This cannot be undone.",
     );
     if (!confirmed) return;
@@ -122,7 +123,7 @@ class _StationFormScreenState extends State<StationFormScreen> {
     try {
       await _apiService.deleteStation(existing.id);
       if (!mounted) return;
-      CustomToast.show(context, "Station deleted");
+      CustomToast.show(context, L10n.of(context).stationDeleted);
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
@@ -132,9 +133,9 @@ class _StationFormScreenState extends State<StationFormScreen> {
   }
 
   String? _requiredNumber(String? v, {bool isDecimal = true}) {
-    if (v == null || v.trim().isEmpty) return "Required";
+    if (v == null || v.trim().isEmpty) return L10n.of(context).required;
     final parsed = isDecimal ? double.tryParse(v.trim()) : int.tryParse(v.trim());
-    if (parsed == null) return "Enter a valid number";
+    if (parsed == null) return L10n.of(context).enterAValidNumber;
     return null;
   }
 
@@ -142,7 +143,7 @@ class _StationFormScreenState extends State<StationFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ThemeTokens.background,
-      appBar: AppBar(title: Text(widget.isEditMode ? "Edit Station" : "Add Station", style: ThemeTokens.headingMedium.copyWith(fontSize: 17))),
+      appBar: AppBar(title: Text(widget.isEditMode ? L10n.of(context).editStation : L10n.of(context).addStation, style: ThemeTokens.headingMedium.copyWith(fontSize: 17))),
       body: SafeArea(
         child: Form(
           key: _formKey,
@@ -152,38 +153,38 @@ class _StationFormScreenState extends State<StationFormScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SectionCard(
-                  title: "Station Details",
+                  title: L10n.of(context).stationDetails,
                   icon: Icons.factory_outlined,
                   child: Column(
                     children: [
                       AppTextField(
-                        label: "Station Number",
+                        label: L10n.of(context).stationNumber,
                         controller: _stationNumberController,
                         hint: "e.g. STATION-38",
-                        validator: (v) => (v == null || v.trim().isEmpty) ? "Station number is required" : null,
+                        validator: (v) => (v == null || v.trim().isEmpty) ? L10n.of(context).stationNumberIsRequired : null,
                       ),
                       if (widget.isEditMode)
                         Padding(
                           padding: const EdgeInsets.only(top: 4.0),
                           child: Align(
                             alignment: Alignment.centerLeft,
-                            child: Text("Station number can't be changed after creation.", style: ThemeTokens.caption),
+                            child: Text(L10n.of(context).stationNumberCanTBe, style: ThemeTokens.caption),
                           ),
                         ),
                       const SizedBox(height: 16.0),
                       AppTextField(
-                        label: "Operation Name",
+                        label: L10n.of(context).operationName,
                         controller: _operationNameController,
                         hint: "e.g. Collar Run",
-                        validator: (v) => (v == null || v.trim().isEmpty) ? "Operation name is required" : null,
+                        validator: (v) => (v == null || v.trim().isEmpty) ? L10n.of(context).operationNameIsRequired : null,
                       ),
                       const SizedBox(height: 16.0),
                       AppDropdownField<String>(
-                        label: "Zone",
+                        label: L10n.of(context).zone,
                         value: _zone,
-                        items: const [
-                          DropdownMenuItem(value: "S1", child: Text("S1 · Sub Assembly")),
-                          DropdownMenuItem(value: "S2", child: Text("S2 · Full Garment Assembly")),
+                        items: [
+                          DropdownMenuItem(value: "S1", child: Text(L10n.of(context).s1SubAssembly)),
+                          DropdownMenuItem(value: "S2", child: Text(L10n.of(context).s2FullGarmentAssembly)),
                         ],
                         onChanged: (v) => setState(() => _zone = v ?? "S1"),
                       ),
@@ -194,7 +195,7 @@ class _StationFormScreenState extends State<StationFormScreen> {
                           value: _active,
                           onChanged: (v) => setState(() => _active = v),
                           activeThumbColor: ThemeTokens.primary,
-                          title: Text("Active", style: ThemeTokens.labelSmall),
+                          title: Text(L10n.of(context).active, style: ThemeTokens.labelSmall),
                         ),
                       ],
                     ],
@@ -202,12 +203,12 @@ class _StationFormScreenState extends State<StationFormScreen> {
                 ),
                 const SizedBox(height: 16.0),
                 SectionCard(
-                  title: "SAM & Targets",
+                  title: L10n.of(context).samTargets,
                   icon: Icons.speed_outlined,
                   child: Column(
                     children: [
                       AppTextField(
-                        label: "SAM (Standard Allowed Minutes)",
+                        label: L10n.of(context).samStandardAllowedMinutes,
                         controller: _samController,
                         hint: "e.g. 1.2",
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -215,57 +216,57 @@ class _StationFormScreenState extends State<StationFormScreen> {
                       ),
                       const SizedBox(height: 16.0),
                       AppTextField(
-                        label: "Operator Count",
+                        label: L10n.of(context).operatorCount,
                         controller: _operatorCountController,
                         keyboardType: TextInputType.number,
                         validator: (v) => _requiredNumber(v, isDecimal: false),
                       ),
                       const SizedBox(height: 16.0),
                       AppTextField(
-                        label: "Target Pieces / Hour",
+                        label: L10n.of(context).targetPiecesHour,
                         controller: _targetPerHourController,
                         keyboardType: TextInputType.number,
                         validator: (v) => _requiredNumber(v, isDecimal: false),
                       ),
                       const SizedBox(height: 16.0),
                       AppTextField(
-                        label: "Target Pieces / Day",
+                        label: L10n.of(context).targetPiecesDay,
                         controller: _targetPerDayController,
                         keyboardType: TextInputType.number,
                         validator: (v) => _requiredNumber(v, isDecimal: false),
                       ),
                       const SizedBox(height: 16.0),
                       AppTextField(
-                        label: "Minimum Stock Threshold",
+                        label: L10n.of(context).minimumStockThreshold,
                         controller: _minStockController,
                         hint: "e.g. 50",
                         keyboardType: TextInputType.number,
-                        validator: (v) => v == null || v.trim().isEmpty ? null : (int.tryParse(v.trim()) == null ? "Enter a valid whole number" : null),
+                        validator: (v) => v == null || v.trim().isEmpty ? null : (int.tryParse(v.trim()) == null ? L10n.of(context).enterAValidWholeNumber : null),
                       ),
                       Padding(
                         padding: const EdgeInsets.only(top: 4.0),
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            "Stock availability is auto-flagged LOW_STOCK when the Supervisor's logged quantity falls below this (NO_STOCK at exactly 0).",
+                            L10n.of(context).stockAvailabilityIsAutoFlagged2,
                             style: ThemeTokens.caption,
                           ),
                         ),
                       ),
                       const SizedBox(height: 16.0),
                       AppTextField(
-                        label: "Maximum Stock Threshold (optional, 0 = no ceiling)",
+                        label: L10n.of(context).maximumStockThresholdOptional0,
                         controller: _maxStockController,
                         hint: "e.g. 500",
                         keyboardType: TextInputType.number,
-                        validator: (v) => v == null || v.trim().isEmpty ? null : (int.tryParse(v.trim()) == null ? "Enter a valid whole number" : null),
+                        validator: (v) => v == null || v.trim().isEmpty ? null : (int.tryParse(v.trim()) == null ? L10n.of(context).enterAValidWholeNumber : null),
                       ),
                       Padding(
                         padding: const EdgeInsets.only(top: 4.0),
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            "Stock availability is auto-flagged HIGH_STOCK when the logged quantity exceeds this ceiling.",
+                            L10n.of(context).stockAvailabilityIsAutoFlagged,
                             style: ThemeTokens.caption,
                           ),
                         ),
@@ -275,10 +276,10 @@ class _StationFormScreenState extends State<StationFormScreen> {
                 ),
                 const SizedBox(height: 16.0),
                 SectionCard(
-                  title: "Piece Rate Pay",
+                  title: L10n.of(context).pieceRatePay,
                   icon: Icons.currency_rupee_rounded,
                   child: AppTextField(
-                    label: "Rate Per Piece (₹)",
+                    label: L10n.of(context).ratePerPiece,
                     controller: _rateController,
                     hint: "e.g. 0.75",
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -287,14 +288,14 @@ class _StationFormScreenState extends State<StationFormScreen> {
                 ),
                 const SizedBox(height: 24.0),
                 AppPrimaryButton(
-                  label: widget.isEditMode ? "Save Changes" : "Create Station",
+                  label: widget.isEditMode ? L10n.of(context).saveChanges : L10n.of(context).createStation,
                   onPressed: _submit,
                   isLoading: _isSaving,
                 ),
                 if (widget.isEditMode) ...[
                   const SizedBox(height: 12.0),
                   AppGhostButton(
-                    label: "Delete Station",
+                    label: L10n.of(context).deleteStation,
                     onPressed: _deleteStation,
                     isLoading: _isDeleting,
                     color: ThemeTokens.error,
