@@ -1,8 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required for the app to reach the backend at all. Flutter's template declares this
+         only in the debug and profile manifests (for the dev tooling), so `flutter run`
+         works while a RELEASE apk silently has no network access - every request fails as
+         if the server were down. It must be declared here, in main, to reach release builds. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
-        android:label="mes"
+        android:label="GTMES"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/launcher_icon"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
