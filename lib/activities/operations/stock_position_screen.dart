@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../components/app_button.dart';
 import '../../models/stock_position.dart';
 import '../../services/stock_position_api_service.dart';
@@ -29,13 +30,13 @@ class _StockPositionScreenState extends State<StockPositionScreen> {
     _load();
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool forceRefresh = false}) async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
     try {
-      final positions = await _apiService.listForDate(formatIsoDate(_date));
+      final positions = await _apiService.listForDate(formatIsoDate(_date), forceRefresh: forceRefresh);
       if (!mounted) return;
       setState(() {
         _positions = positions;
@@ -72,7 +73,7 @@ class _StockPositionScreenState extends State<StockPositionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ThemeTokens.background,
-      appBar: AppBar(title: Text("Daily Stock Position", style: ThemeTokens.headingMedium.copyWith(fontSize: 17))),
+      appBar: AppBar(title: Text(L10n.of(context).dailyStockPosition, style: ThemeTokens.headingMedium.copyWith(fontSize: 17))),
       body: Column(
         children: [
           Padding(
@@ -90,21 +91,21 @@ class _StockPositionScreenState extends State<StockPositionScreen> {
     if (_errorMessage != null) {
       return OpsStateMessage(
         icon: Icons.wifi_off_rounded,
-        title: "Couldn't load stock position",
+        title: L10n.of(context).couldnTLoadStockPosition,
         body: _errorMessage!,
-        action: SizedBox(width: 180, child: AppPrimaryButton(label: "Retry", onPressed: _load)),
+        action: SizedBox(width: 180, child: AppPrimaryButton(label: L10n.of(context).retry, onPressed: _load)),
       );
     }
     if (_positions.isEmpty) {
-      return const OpsStateMessage(
+      return OpsStateMessage(
         icon: Icons.stacked_line_chart_outlined,
-        title: "No zones found",
-        body: "Stock zones haven't been seeded on the server yet.",
+        title: L10n.of(context).noZonesFound,
+        body: L10n.of(context).stockZonesHavenTBeen,
       );
     }
     return RefreshIndicator(
       color: ThemeTokens.primary,
-      onRefresh: _load,
+      onRefresh: () => _load(forceRefresh: true),
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
         itemCount: _positions.length,
