@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../app_button.dart';
 import '../../models/dashboard_summary.dart';
 import '../../services/dashboard_api_service.dart';
@@ -30,13 +31,13 @@ class _WorkforceDashboardState extends State<WorkforceDashboard> {
     _load();
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool forceRefresh = false}) async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
     try {
-      final summary = await _apiService.getSummary();
+      final summary = await _apiService.getSummary(forceRefresh: forceRefresh);
       if (!mounted) return;
       setState(() {
         _summary = summary;
@@ -72,7 +73,7 @@ class _WorkforceDashboardState extends State<WorkforceDashboard> {
             children: [
               Text(_errorMessage!, style: ThemeTokens.bodyMedium, textAlign: TextAlign.center),
               const SizedBox(height: 16.0),
-              SizedBox(width: 180, child: AppPrimaryButton(label: "Retry", onPressed: _load)),
+              SizedBox(width: 180, child: AppPrimaryButton(label: L10n.of(context).retry, onPressed: _load)),
             ],
           ),
         ),
@@ -85,25 +86,25 @@ class _WorkforceDashboardState extends State<WorkforceDashboard> {
 
     return RefreshIndicator(
       color: ThemeTokens.primary,
-      onRefresh: _load,
+      onRefresh: () => _load(forceRefresh: true),
       child: ListView(
         padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
         children: [
           LedgerHero(
-            eyebrow: "Total Workforce",
+            eyebrow: L10n.of(context).totalWorkforce,
             value: "${summary.totalEmployees}",
             stats: [
-              (value: "${summary.activeEmployees}", label: "Active"),
-              (value: "${summary.inactiveEmployees}", label: "Inactive"),
+              (value: "${summary.activeEmployees}", label: L10n.of(context).active),
+              (value: "${summary.inactiveEmployees}", label: L10n.of(context).inactive),
             ],
           ),
           const SizedBox(height: 28.0),
           if (summary.employeesByRole.isNotEmpty) ...[
-            BreakdownBlock(title: "Composition by role", entries: summary.employeesByRole, maxValue: maxRole, labeller: _formatRole),
+            BreakdownBlock(title: L10n.of(context).compositionByRole, entries: summary.employeesByRole, maxValue: maxRole, labeller: _formatRole),
             const SizedBox(height: 28.0),
           ],
           if (summary.employeesByDepartment.isNotEmpty) ...[
-            BreakdownBlock(title: "Composition by department", entries: summary.employeesByDepartment, maxValue: maxDept),
+            BreakdownBlock(title: L10n.of(context).compositionByDepartment, entries: summary.employeesByDepartment, maxValue: maxDept),
             const SizedBox(height: 28.0),
           ],
           if (summary.recentJoiners.isNotEmpty) RecentJoiners(joiners: summary.recentJoiners),
