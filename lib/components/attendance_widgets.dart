@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../utils/theme_tokens.dart';
 
 /// One editorial attendance row with a hairline separator. Shared across the
@@ -75,7 +76,7 @@ class AttendanceSearchField extends StatelessWidget {
       style: ThemeTokens.inputText,
       cursorColor: ThemeTokens.primary,
       decoration: InputDecoration(
-        hintText: "Search by name or code",
+        hintText: L10n.of(context).searchByNameOrCode,
         hintStyle: ThemeTokens.hintText,
         prefixIcon: const Icon(Icons.search_rounded, size: 19, color: ThemeTokens.textLight),
         suffixIcon: controller.text.isEmpty
