@@ -9,10 +9,8 @@ class ProfileApiService extends ApiClient {
   factory ProfileApiService() => _instance;
   ProfileApiService._internal();
 
-  Future<EmployeeDetail> getProfile() async {
-    final response = await http
-        .get(Uri.parse("$baseUrl/api/profile"), headers: headers)
-        .timeout(const Duration(seconds: 8));
+  Future<EmployeeDetail> getProfile({bool forceRefresh = false}) async {
+    final response = await cachedGet(Uri.parse("$baseUrl/api/profile"), forceRefresh: forceRefresh);
     ensureSuccess(response);
     return EmployeeDetail.fromJson(json.decode(response.body) as Map<String, dynamic>);
   }
@@ -24,8 +22,9 @@ class ProfileApiService extends ApiClient {
           headers: headers,
           body: json.encode(request.toJson()),
         )
-        .timeout(const Duration(seconds: 8));
+        .timeout(const Duration(seconds: 60));
     ensureSuccess(response);
+    ApiClient.invalidateCache();
     return EmployeeDetail.fromJson(json.decode(response.body) as Map<String, dynamic>);
   }
 
@@ -36,7 +35,7 @@ class ProfileApiService extends ApiClient {
           headers: headers,
           body: json.encode(request.toJson()),
         )
-        .timeout(const Duration(seconds: 8));
+        .timeout(const Duration(seconds: 60));
     ensureSuccess(response);
   }
 }
