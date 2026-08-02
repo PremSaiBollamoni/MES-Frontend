@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
-import '../../components/app_button.dart';
 import '../../components/custom_toast.dart';
-import '../../models/employee_day_activity.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/production_entry.dart';
 import '../../models/roster_entry.dart';
 import '../../models/station.dart';
-import '../../models/tracking_session.dart';
 import '../../services/allocation_api_service.dart';
+import '../../services/attendance_api_service.dart';
 import '../../services/production_entry_api_service.dart';
 import '../../services/station_api_service.dart';
-import '../../services/tracking_session_api_service.dart';
+import '../../utils/employee_names.dart';
+import '../../utils/error_messages.dart';
+import '../../utils/operation_names.dart';
 import '../../utils/theme_tokens.dart';
-import 'employee_activity_card.dart';
-import 'employee_day_detail_screen.dart';
-import 'log_production_entry_dialog.dart';
+import 'employee_slots_screen.dart';
 import 'operations_widgets.dart';
 
-/// Supervisor's full-day production view across every operator, with the
-/// ability to log a new entry on an operator's behalf.
+/// Supervisor's entry point for logging production: everyone present today, with each
+/// person's running total for the day.
+///
+/// Only people with an attendance record are listed - production cannot be logged for
+/// someone who did not come in. The sync button pulls fresh punches from HRMS; if HRMS
+/// is unreachable the error is surfaced rather than silently falling back to a stale or
+/// wider list, because quietly showing absent people invites wrong data.
 class ProductionEntryScreen extends StatefulWidget {
   const ProductionEntryScreen({super.key});
 
@@ -26,143 +30,276 @@ class ProductionEntryScreen extends StatefulWidget {
 }
 
 class _ProductionEntryScreenState extends State<ProductionEntryScreen> {
-  final ProductionEntryApiService _apiService = ProductionEntryApiService();
-  final AllocationApiService _allocationApiService = AllocationApiService();
-  final StationApiService _stationApiService = StationApiService();
-  final TrackingSessionApiService _trackingApiService = TrackingSessionApiService();
+  final _allocationApiService = AllocationApiService();
+  final _stationApiService = StationApiService();
+  final _entryApiService = ProductionEntryApiService();
+  final _attendanceApiService = AttendanceApiService();
+  final _searchController = TextEditingController();
 
   DateTime _date = DateTime.now();
   bool _isLoading = true;
+  bool _isSyncing = false;
   String? _errorMessage;
-  List<ProductionEntry> _entries = [];
   List<RosterEntry> _roster = [];
   List<Station> _stations = [];
-  List<TrackingSession> _activeSessions = [];
+  List<ProductionEntry> _entries = [];
+  String _query = '';
 
   @override
   void initState() {
     super.initState();
+    _searchController.addListener(() => setState(() => _query = _searchController.text.trim().toLowerCase()));
     _load();
   }
 
-  Future<void> _load() async {
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load({bool forceRefresh = false}) async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
     try {
+      final date = formatIsoDate(_date);
       final results = await Future.wait([
-        _apiService.listForDate(formatIsoDate(_date)),
-        _allocationApiService.rosterForDate(formatIsoDate(_date)),
-        _stationApiService.listStations(),
-        _trackingApiService.listForDate(formatIsoDate(_date)),
+        _allocationApiService.rosterForDate(date, forceRefresh: forceRefresh),
+        _stationApiService.listStations(forceRefresh: forceRefresh),
+        _entryApiService.listForDate(date, forceRefresh: forceRefresh),
       ]);
       if (!mounted) return;
       setState(() {
-        _entries = results[0] as List<ProductionEntry>;
-        _roster = results[1] as List<RosterEntry>;
-        _stations = results[2] as List<Station>;
-        _activeSessions = (results[3] as List<TrackingSession>).where((s) => s.status == 'ACTIVE').toList();
+        _roster = results[0] as List<RosterEntry>;
+        _stations = results[1] as List<Station>;
+        _entries = results[2] as List<ProductionEntry>;
         _isLoading = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = e.toString().replaceAll("Exception: ", "");
+        _errorMessage = ErrorMessages.translate(context, e);
         _isLoading = false;
       });
     }
   }
 
-  Future<void> _openLogDialog() async {
-    if (_roster.isEmpty || _stations.isEmpty) {
-      CustomToast.show(context, "No operators present or stations available", isError: true);
-      return;
+  /// Pulls fresh attendance from HRMS. Only as many days back as the chosen date needs,
+  /// so looking at today does not drag ninety days of history across the network.
+  Future<void> _syncAttendance() async {
+    setState(() => _isSyncing = true);
+    try {
+      final days = DateTime.now().difference(_date).inDays.clamp(0, 366) + 1;
+      final result = await _attendanceApiService.syncHistory(days: days);
+      if (!mounted) return;
+      CustomToast.show(context, L10n.of(context).syncedRecords(result.recordsSynced));
+      await _load(forceRefresh: true);
+    } catch (e) {
+      if (!mounted) return;
+      CustomToast.show(context, ErrorMessages.translate(context, e), isError: true);
+    } finally {
+      if (mounted) setState(() => _isSyncing = false);
     }
-    await showDialog(
-      context: context,
-      builder: (_) => LogProductionEntryDialog(
-        operators: _roster,
-        stations: _stations,
-        onSubmit: (employeeId, stationId, pieces, minutes) async {
-          final entry = await _apiService.log(LogProductionEntryRequest(
-            employeeId: employeeId,
-            stationId: stationId,
-            shiftDate: formatIsoDate(_date),
-            piecesProduced: pieces,
-            timeOnMachineMinutes: minutes,
-          ));
-          if (mounted) {
-            CustomToast.show(context, "Logged: ${entry.efficiencyPct.toStringAsFixed(0)}% efficiency (${entry.classification})");
-          }
-        },
+  }
+
+  Future<void> _openEmployee(RosterEntry entry) async {
+    final changed = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => EmployeeSlotsScreen(
+          employeeId: entry.employeeId,
+          employeeName: entry.employeeName,
+          date: _date,
+          stations: _stations,
+        ),
       ),
     );
-    _load();
+    if (changed == true) _load(forceRefresh: true);
   }
+
+  List<RosterEntry> get _filtered {
+    final sorted = [..._roster]..sort((a, b) => a.employeeName.compareTo(b.employeeName));
+    if (_query.isEmpty) return sorted;
+    return sorted.where((e) {
+      final telugu = EmployeeNames.display(context, e.employeeName).toLowerCase();
+      return e.employeeName.toLowerCase().contains(_query) ||
+          telugu.contains(_query) ||
+          (e.employeeCode?.toLowerCase().contains(_query) ?? false);
+    }).toList();
+  }
+
+  int _piecesFor(int employeeId) => _entries
+      .where((e) => e.employeeId == employeeId)
+      .fold<int>(0, (sum, e) => sum + e.piecesProduced);
 
   @override
   Widget build(BuildContext context) {
+    final t = L10n.of(context);
     return Scaffold(
       backgroundColor: ThemeTokens.background,
-      appBar: AppBar(title: Text("Production Entry", style: ThemeTokens.headingMedium.copyWith(fontSize: 17))),
-      floatingActionButton: FloatingActionButton(
-        heroTag: "production_entry_fab",
-        onPressed: _isLoading ? null : _openLogDialog,
-        backgroundColor: ThemeTokens.primary,
-        elevation: 2,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
+      appBar: AppBar(
+        title: Text(t.logProduction, style: ThemeTokens.headingMedium.copyWith(fontSize: 17)),
+        backgroundColor: ThemeTokens.background,
+        actions: [
+          IconButton(
+            tooltip: t.syncAttendance,
+            onPressed: _isSyncing ? null : _syncAttendance,
+            icon: _isSyncing
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: ThemeTokens.primary))
+                : const Icon(Icons.sync_rounded, color: ThemeTokens.primary),
+          ),
+        ],
       ),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: OpsDatePickerBar(date: _date, onChanged: (d) { setState(() => _date = d); _load(); }),
           ),
-          Expanded(child: _buildBody()),
+          if (!_isLoading && _errorMessage == null && _roster.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+              child: TextField(
+                controller: _searchController,
+                style: ThemeTokens.inputText,
+                decoration: InputDecoration(
+                  hintText: t.searchHint,
+                  hintStyle: ThemeTokens.hintText,
+                  prefixIcon: const Icon(Icons.search_rounded, size: 20, color: ThemeTokens.textLight),
+                  filled: true,
+                  fillColor: ThemeTokens.surfaceSolid,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12.0),
+                  border: _border(),
+                  enabledBorder: _border(),
+                  focusedBorder: _border(focused: true),
+                ),
+              ),
+            ),
+          Expanded(child: _buildBody(t)),
         ],
       ),
     );
   }
 
-  Widget _buildBody() {
+  OutlineInputBorder _border({bool focused = false}) => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(ThemeTokens.radiusMedium),
+        borderSide: BorderSide(
+          color: focused ? ThemeTokens.primary : ThemeTokens.hairline,
+          width: focused ? 1.5 : 1,
+        ),
+      );
+
+  Widget _buildBody(L10n t) {
     if (_isLoading) return const Center(child: CircularProgressIndicator(color: ThemeTokens.primary));
+
     if (_errorMessage != null) {
       return OpsStateMessage(
         icon: Icons.wifi_off_rounded,
-        title: "Couldn't load production entries",
+        title: t.couldnTLoadAttendance,
         body: _errorMessage!,
-        action: SizedBox(width: 180, child: AppPrimaryButton(label: "Retry", onPressed: _load)),
       );
     }
-    final byEmployee = EmployeeDayActivity.groupByEmployee(entries: _entries, activeSessions: _activeSessions);
-    if (byEmployee.isEmpty) {
-      return const OpsStateMessage(
-        icon: Icons.speed_outlined,
-        title: "No activity logged yet",
-        body: "Tap + to log pieces produced on behalf of an operator, or start tracking from Operator Allocation.",
+
+    if (_roster.isEmpty) {
+      return OpsStateMessage(
+        icon: Icons.person_off_outlined,
+        title: t.nobodyPresentToday,
+        body: t.tapSyncToPullAttendance,
       );
     }
-    final activities = EmployeeDayActivity.sorted(byEmployee);
+
+    final list = _filtered;
+    if (list.isEmpty) {
+      return OpsStateMessage(icon: Icons.search_off_rounded, title: t.noResults, body: '');
+    }
+
     return RefreshIndicator(
       color: ThemeTokens.primary,
-      onRefresh: _load,
+      onRefresh: () => _load(forceRefresh: true),
       child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(24, 8, 24, 96),
-        itemCount: activities.length,
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+        itemCount: list.length,
         itemBuilder: (context, index) {
-          final activity = activities[index];
-          return EmployeeActivityCard(
-            activity: activity,
-            onTap: () async {
-              await Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => EmployeeDayDetailScreen(activity: activity, date: _date),
-              ));
-              _load();
-            },
+          final entry = list[index];
+          return _PresentEmployeeCard(
+            entry: entry,
+            pieces: _piecesFor(entry.employeeId),
+            onTap: () => _openEmployee(entry),
           );
         },
+      ),
+    );
+  }
+}
+
+/// One present operator, with their running total for the day.
+class _PresentEmployeeCard extends StatelessWidget {
+  final RosterEntry entry;
+  final int pieces;
+  final VoidCallback onTap;
+
+  const _PresentEmployeeCard({required this.entry, required this.pieces, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasWork = pieces > 0;
+    final station = entry.stationNumber == null
+        ? null
+        : '${entry.stationNumber} · ${OperationNames.display(context, entry.operationName ?? '')}';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8.0),
+      decoration: BoxDecoration(
+        color: ThemeTokens.surfaceSolid,
+        borderRadius: BorderRadius.circular(ThemeTokens.radiusMedium),
+        border: Border.all(color: ThemeTokens.hairline),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(ThemeTokens.radiusMedium),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      EmployeeNames.display(context, entry.employeeName),
+                      style: ThemeTokens.bodyLarge.copyWith(fontSize: 15),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3.0),
+                    Text(
+                      station ?? (entry.employeeCode ?? ''),
+                      style: ThemeTokens.caption,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12.0),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '$pieces',
+                    style: ThemeTokens.headingMedium.copyWith(
+                      fontSize: 19,
+                      color: hasWork ? ThemeTokens.primary : ThemeTokens.textLight,
+                    ),
+                  ),
+                  Text(L10n.of(context).pieces.toLowerCase(), style: ThemeTokens.caption.copyWith(fontSize: 10)),
+                ],
+              ),
+              const SizedBox(width: 6.0),
+              const Icon(Icons.chevron_right_rounded, color: ThemeTokens.textLight),
+            ],
+          ),
+        ),
       ),
     );
   }
