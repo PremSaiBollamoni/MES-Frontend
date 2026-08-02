@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../components/custom_toast.dart';
 import '../models/login_result.dart';
 import '../services/api_service.dart';
@@ -57,12 +58,12 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("SIGN IN AS", style: ThemeTokens.labelSmall),
+                  Text(L10n.of(context).signInAs, style: ThemeTokens.labelSmall),
                   const SizedBox(height: 8.0),
                   Text("Hi, ${widget.pending.name.split(' ').first}", style: ThemeTokens.headingDisplay.copyWith(fontSize: 28)),
                   const SizedBox(height: 8.0),
                   Text(
-                    "Your account holds more than one role. Choose which one to use for this session.",
+                    L10n.of(context).yourAccountHoldsMoreThan,
                     style: ThemeTokens.bodyMedium,
                   ),
                   const SizedBox(height: 32.0),
