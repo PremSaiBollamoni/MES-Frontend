@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../utils/employee_names.dart';
+import '../l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 import '../components/confirm_dialog.dart';
 import '../components/custom_toast.dart';
@@ -75,7 +77,7 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
       }
       _dataChanged = true;
       if (!mounted) return;
-      CustomToast.show(context, employee.active ? "Employee deactivated" : "Employee reactivated");
+      CustomToast.show(context, employee.active ? L10n.of(context).employeeDeactivated : L10n.of(context).employeeReactivated);
       await _loadEmployee();
     } catch (e) {
       if (!mounted) return;
@@ -91,7 +93,7 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
 
     final confirmed = await showConfirmDialog(
       context,
-      title: "Delete Employee",
+      title: L10n.of(context).deleteEmployee,
       message: "This will permanently delete ${employee.name} (${employee.username}). This cannot be undone.",
     );
     if (!confirmed) return;
@@ -100,7 +102,7 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
     try {
       await _apiService.deleteEmployee(employee.id);
       if (!mounted) return;
-      CustomToast.show(context, "Employee deleted");
+      CustomToast.show(context, L10n.of(context).employeeDeleted);
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
@@ -121,7 +123,7 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
       final bytes = await picked.readAsBytes();
       await _apiService.enrollFace(employee.id, bytes, picked.name);
       if (!mounted) return;
-      CustomToast.show(context, "Face photo enrolled in HRMS");
+      CustomToast.show(context, L10n.of(context).facePhotoEnrolledInHrms);
     } catch (e) {
       if (!mounted) return;
       CustomToast.show(context, e.toString().replaceAll("Exception: ", ""), isError: true);
@@ -179,7 +181,7 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
         appBar: AppBar(
           backgroundColor: ThemeTokens.surfaceSolid,
           elevation: 0,
-          title: Text("Employee Details", style: ThemeTokens.headingMedium.copyWith(color: ThemeTokens.textPrimary)),
+          title: Text(L10n.of(context).employeeDetails, style: ThemeTokens.headingMedium.copyWith(color: ThemeTokens.textPrimary)),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded, color: ThemeTokens.textSecondary),
             onPressed: () => Navigator.of(context).pop(_dataChanged),
@@ -213,7 +215,7 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
               const SizedBox(height: 12.0),
               Text(_errorMessage!, style: ThemeTokens.bodyMedium, textAlign: TextAlign.center),
               const SizedBox(height: 16.0),
-              AppPrimaryButton(label: "Retry", onPressed: _loadEmployee),
+              AppPrimaryButton(label: L10n.of(context).retry, onPressed: _loadEmployee),
             ],
           ),
         ),
@@ -228,21 +230,21 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ProfileHeroCard(
-            name: employee.name,
+            name: EmployeeNames.display(context, employee.name),
             subtitle: employee.employeeCode,
             badgeIcon: RoleIcon.forRole(employee.roleCode),
             trailing: StatusBadge(active: employee.active),
           ),
           const SizedBox(height: 16.0),
           SectionCard(
-            title: "Work Details",
+            title: L10n.of(context).workDetails,
             icon: Icons.badge_outlined,
             child: Column(
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Roles", style: ThemeTokens.caption.copyWith(fontSize: 12)),
+                    Text(L10n.of(context).roles, style: ThemeTokens.caption.copyWith(fontSize: 12)),
                     const SizedBox(height: 8.0),
                     Wrap(
                       spacing: 6.0,
@@ -261,35 +263,34 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
                   child: TextButton.icon(
                     onPressed: _openAssignRoles,
                     icon: const Icon(Icons.manage_accounts_outlined, size: 18, color: ThemeTokens.primary),
-                    label: Text("Assign Roles", style: ThemeTokens.labelSmall.copyWith(color: ThemeTokens.primary)),
+                    label: Text(L10n.of(context).assignRoles, style: ThemeTokens.labelSmall.copyWith(color: ThemeTokens.primary)),
                     style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(0, 0), tapTargetSize: MaterialTapTargetSize.shrinkWrap),
                   ),
                 ),
                 const Divider(color: ThemeTokens.hairline, height: 24),
-                InfoRow(label: "Username", value: employee.username),
-                InfoRow(label: "Department", value: employee.department ?? "—"),
-                InfoRow(label: "Designation", value: employee.designation ?? "—"),
-                InfoRow(label: "Shift", value: employee.shift ?? "—"),
-                InfoRow(label: "Date of Joining", value: _formatDate(employee.dateOfJoining)),
+                InfoRow(label: L10n.of(context).username, value: employee.username),
+                InfoRow(label: L10n.of(context).department, value: employee.department ?? "—"),
+                InfoRow(label: L10n.of(context).designation, value: employee.designation ?? "—"),
+                InfoRow(label: L10n.of(context).shift, value: employee.shift ?? "—"),
+                InfoRow(label: L10n.of(context).dateOfJoining, value: _formatDate(employee.dateOfJoining)),
               ],
             ),
           ),
           const SizedBox(height: 16.0),
           SectionCard(
-            title: "Biometric (HRMS)",
+            title: L10n.of(context).biometricHrms,
             icon: Icons.fingerprint_rounded,
             child: Column(
               children: [
-                InfoRow(label: "Sync Status", value: employee.hrmsSyncStatus),
-                if (employee.hrmsEmployeeCode != null) InfoRow(label: "HRMS Code", value: employee.hrmsEmployeeCode!),
+                InfoRow(label: L10n.of(context).syncStatus, value: employee.hrmsSyncStatus),
+                if (employee.hrmsEmployeeCode != null) InfoRow(label: L10n.of(context).hrmsCode, value: employee.hrmsEmployeeCode!),
                 if (employee.hrmsDeviceUserId != null)
-                  InfoRow(label: "Device User ID", value: employee.hrmsDeviceUserId!),
+                  InfoRow(label: L10n.of(context).deviceUserId, value: employee.hrmsDeviceUserId!),
                 if (!employee.isSyncedToHrms)
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(
-                      "Not yet synced to HRMS - fingerprint/RFID enrollment must be done directly on the "
-                      "physical biometric device by whoever administers it; that can't be triggered from here.",
+                      L10n.of(context).notYetSyncedToHrmsFull,
                       style: ThemeTokens.hintText,
                     ),
                   ),
@@ -300,7 +301,7 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
                     icon: _isUploadingFace
                         ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.face_retouching_natural_rounded),
-                    label: const Text("Upload Face Photo"),
+                    label: Text(L10n.of(context).uploadFacePhoto),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: ThemeTokens.primary,
                       side: const BorderSide(color: ThemeTokens.primary),
@@ -310,7 +311,7 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
                   ),
                   const SizedBox(height: 6.0),
                   Text(
-                    "Fingerprint and RFID still require physical enrollment on the device itself.",
+                    L10n.of(context).fingerprintAndRfidStillRequire,
                     style: ThemeTokens.hintText,
                   ),
                 ],
@@ -319,26 +320,26 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
           ),
           const SizedBox(height: 16.0),
           SectionCard(
-            title: "Personal Details",
+            title: L10n.of(context).personalDetails,
             icon: Icons.person_outline_rounded,
             child: Column(
               children: [
-                InfoRow(label: "Date of Birth", value: _formatDate(employee.dateOfBirth)),
-                InfoRow(label: "Gender", value: employee.gender ?? "—"),
-                InfoRow(label: "Blood Group", value: employee.bloodGroup ?? "—"),
-                InfoRow(label: "Address", value: employee.address ?? "—"),
+                InfoRow(label: L10n.of(context).dateOfBirth, value: _formatDate(employee.dateOfBirth)),
+                InfoRow(label: L10n.of(context).gender, value: employee.gender ?? "—"),
+                InfoRow(label: L10n.of(context).bloodGroup, value: employee.bloodGroup ?? "—"),
+                InfoRow(label: L10n.of(context).address, value: employee.address ?? "—"),
               ],
             ),
           ),
           const SizedBox(height: 16.0),
           SectionCard(
-            title: "Emergency Contact",
+            title: L10n.of(context).emergencyContact,
             icon: Icons.emergency_outlined,
             child: Column(
               children: [
-                InfoRow(label: "Name", value: employee.emergencyContactName ?? "—"),
-                InfoRow(label: "Number", value: employee.emergencyContactNumber ?? "—"),
-                InfoRow(label: "Relationship", value: employee.emergencyContactRelationship ?? "—"),
+                InfoRow(label: L10n.of(context).name, value: employee.emergencyContactName ?? "—"),
+                InfoRow(label: L10n.of(context).number, value: employee.emergencyContactNumber ?? "—"),
+                InfoRow(label: L10n.of(context).relationship, value: employee.emergencyContactRelationship ?? "—"),
               ],
             ),
           ),
@@ -352,7 +353,7 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : Icon(employee.active ? Icons.block_rounded : Icons.check_circle_outline_rounded),
-            label: Text(employee.active ? "Deactivate Employee" : "Reactivate Employee"),
+            label: Text(employee.active ? L10n.of(context).deactivateEmployee : L10n.of(context).reactivateEmployee),
             style: OutlinedButton.styleFrom(
               foregroundColor: employee.active ? ThemeTokens.error : ThemeTokens.success,
               side: BorderSide(color: employee.active ? ThemeTokens.error : ThemeTokens.success),
@@ -370,7 +371,7 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
                   )
                 : const Icon(Icons.delete_outline_rounded),
-            label: const Text("Delete Employee"),
+            label: Text(L10n.of(context).deleteEmployee),
             style: ElevatedButton.styleFrom(
               backgroundColor: ThemeTokens.error,
               foregroundColor: Colors.white,
