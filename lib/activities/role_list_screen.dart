@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../components/app_button.dart';
 import '../components/custom_toast.dart';
 import '../components/role_card.dart';
@@ -31,13 +32,13 @@ class _RoleListScreenState extends State<RoleListScreen> {
     _load();
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool forceRefresh = false}) async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
     try {
-      final roles = await _apiService.listRoles();
+      final roles = await _apiService.listRoles(forceRefresh: forceRefresh);
       if (!mounted) return;
       setState(() {
         _roles = roles;
@@ -58,7 +59,7 @@ class _RoleListScreenState extends State<RoleListScreen> {
     );
     if (created == true) {
       if (!mounted) return;
-      CustomToast.show(context, "Role created successfully");
+      CustomToast.show(context, L10n.of(context).roleCreatedSuccessfully);
       _load();
     }
   }
@@ -106,14 +107,14 @@ class _RoleListScreenState extends State<RoleListScreen> {
       builder: (dialogContext) => AlertDialog(
         title: Text("Delete $count role(s)?", style: ThemeTokens.headingMedium.copyWith(fontSize: 18)),
         content: Text(
-          "This permanently removes the selected role(s). Any role still assigned to employees will be skipped automatically.",
+          L10n.of(context).thisPermanentlyRemovesTheSelected2,
           style: ThemeTokens.bodyMedium,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text("Cancel")),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(L10n.of(context).cancel)),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text("Delete", style: TextStyle(color: ThemeTokens.error, fontWeight: FontWeight.w700)),
+            child: Text(L10n.of(context).delete, style: TextStyle(color: ThemeTokens.error, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -190,9 +191,9 @@ class _RoleListScreenState extends State<RoleListScreen> {
           padding: const EdgeInsets.only(bottom: 16.0),
           child: Row(
             children: [
-              stat("Total Roles", "$total"),
-              stat("Active", "$active"),
-              stat("Activities", "$totalActivities"),
+              stat(L10n.of(context).totalRoles, "$total"),
+              stat(L10n.of(context).active, "$active"),
+              stat(L10n.of(context).activities, "$totalActivities"),
             ],
           ),
         ),
@@ -218,7 +219,7 @@ class _RoleListScreenState extends State<RoleListScreen> {
           ),
           TextButton(
             onPressed: _isDeleting ? null : _selectAll,
-            child: Text("Select all", style: ThemeTokens.bodyMedium.copyWith(color: ThemeTokens.primary, fontWeight: FontWeight.w700)),
+            child: Text(L10n.of(context).selectAll, style: ThemeTokens.bodyMedium.copyWith(color: ThemeTokens.primary, fontWeight: FontWeight.w700)),
           ),
           IconButton(
             icon: _isDeleting
@@ -246,7 +247,7 @@ class _RoleListScreenState extends State<RoleListScreen> {
               const SizedBox(height: 12.0),
               Text(_errorMessage!, style: ThemeTokens.bodyMedium, textAlign: TextAlign.center),
               const SizedBox(height: 16.0),
-              AppPrimaryButton(label: "Retry", onPressed: _load),
+              AppPrimaryButton(label: L10n.of(context).retry, onPressed: _load),
             ],
           ),
         ),
@@ -255,7 +256,7 @@ class _RoleListScreenState extends State<RoleListScreen> {
 
     return RefreshIndicator(
       color: ThemeTokens.primary,
-      onRefresh: _load,
+      onRefresh: () => _load(forceRefresh: true),
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 96),
         itemCount: _roles.length,
