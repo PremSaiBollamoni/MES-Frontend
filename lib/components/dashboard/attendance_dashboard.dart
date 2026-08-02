@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../utils/employee_names.dart';
+import '../../l10n/app_localizations.dart';
 import '../app_button.dart';
 import '../attendance_widgets.dart';
 import '../../models/attendance.dart';
@@ -48,7 +50,7 @@ class _AttendanceDashboardState extends State<AttendanceDashboard> {
       if (!mounted) return;
       final message = e.toString().replaceAll("Exception: ", "");
       setState(() {
-        _notConfigured = message.contains("not configured");
+        _notConfigured = message.contains(L10n.of(context).notConfigured);
         _errorMessage = message;
         _isLoading = false;
       });
@@ -69,10 +71,10 @@ class _AttendanceDashboardState extends State<AttendanceDashboard> {
       return const Center(child: CircularProgressIndicator(color: ThemeTokens.primary));
     }
     if (_notConfigured) {
-      return const AttendanceMessage(
+      return AttendanceMessage(
         icon: Icons.link_off_rounded,
-        title: "HRMS not connected yet",
-        body: "The biometric attendance portal hasn't been configured on the server yet.",
+        title: L10n.of(context).hrmsNotConnectedYet,
+        body: L10n.of(context).theBiometricAttendancePortalHasn,
       );
     }
     if (_errorMessage != null) {
@@ -84,7 +86,7 @@ class _AttendanceDashboardState extends State<AttendanceDashboard> {
             children: [
               Text(_errorMessage!, style: ThemeTokens.bodyMedium, textAlign: TextAlign.center),
               const SizedBox(height: 16.0),
-              SizedBox(width: 180, child: AppPrimaryButton(label: "Retry", onPressed: _load)),
+              SizedBox(width: 180, child: AppPrimaryButton(label: L10n.of(context).retry, onPressed: _load)),
             ],
           ),
         ),
@@ -101,9 +103,9 @@ class _AttendanceDashboardState extends State<AttendanceDashboard> {
           SummaryPanel(
             eyebrow: "Live · as of ${_formatTime(live.asOf)} · ${live.totalEmployees} total",
             figures: [
-              (value: "${live.presentCount}", label: "Present", color: ThemeTokens.success),
-              (value: "${live.absentCount}", label: "Absent", color: ThemeTokens.error),
-              (value: "${live.lateCount}", label: "Late", color: ThemeTokens.warning),
+              (value: "${live.presentCount}", label: L10n.of(context).present, color: ThemeTokens.success),
+              (value: "${live.absentCount}", label: L10n.of(context).absent, color: ThemeTokens.error),
+              (value: "${live.lateCount}", label: L10n.of(context).late, color: ThemeTokens.warning),
             ],
           ),
           const SizedBox(height: 28.0),
@@ -111,18 +113,18 @@ class _AttendanceDashboardState extends State<AttendanceDashboard> {
             children: [
               Container(width: 18, height: 2, color: ThemeTokens.primary),
               const SizedBox(width: 10.0),
-              Text("TODAY'S ATTENDANCE", style: ThemeTokens.labelSmall),
+              Text(L10n.of(context).todaySAttendance, style: ThemeTokens.labelSmall),
             ],
           ),
           const SizedBox(height: 8.0),
           if (_daily.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16.0),
-              child: Text("No punches recorded yet today.", style: ThemeTokens.bodyMedium),
+              child: Text(L10n.of(context).noPunchesRecordedYetToday, style: ThemeTokens.bodyMedium),
             )
           else
             ..._daily.take(8).map((r) => AttendanceRow(
-                  name: r.employeeName,
+                  name: EmployeeNames.display(context, r.employeeName),
                   subtitle: [r.employeeCode, if (r.departmentName != null) r.departmentName!].join('  ·  '),
                   times: "${_formatTime(r.firstIn)} → ${_formatTime(r.lastOut)}",
                   status: r.status,
