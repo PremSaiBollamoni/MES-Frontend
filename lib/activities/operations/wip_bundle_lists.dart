@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../utils/operation_names.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/bundle.dart';
 import '../../utils/theme_tokens.dart';
 import 'operations_widgets.dart';
@@ -16,7 +18,7 @@ class BundleListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (bundles.isEmpty) {
-      return const OpsStateMessage(icon: Icons.move_down_outlined, title: "No active bundles", body: "Tap + to create one.");
+      return OpsStateMessage(icon: Icons.move_down_outlined, title: L10n.of(context).noActiveBundles, body: L10n.of(context).tapToCreateOne);
     }
     return RefreshIndicator(
       color: ThemeTokens.primary,
@@ -67,7 +69,7 @@ class StationQueueListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (summary.isEmpty) {
-      return const OpsStateMessage(icon: Icons.dashboard_customize_outlined, title: "No queue data", body: "Move some bundles to see station queues here.");
+      return OpsStateMessage(icon: Icons.dashboard_customize_outlined, title: L10n.of(context).noQueueData, body: L10n.of(context).moveSomeBundlesToSee);
     }
     return RefreshIndicator(
       color: ThemeTokens.primary,
@@ -91,7 +93,7 @@ class StationQueueListView extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(s.operationName, style: ThemeTokens.headingMedium.copyWith(fontSize: 15), overflow: TextOverflow.ellipsis),
+                      Text(OperationNames.display(context, s.operationName), style: ThemeTokens.headingMedium.copyWith(fontSize: 15), overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 4.0),
                       Text(s.stationNumber, style: ThemeTokens.caption),
                     ],
