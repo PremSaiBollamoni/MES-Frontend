@@ -21,5 +21,6 @@ class ApiConfig {
   // rewrites the domain root onto it (proxy_pass http://127.0.0.1:8080/smo/), so
   // including it here would double up the path.
   static const String baseUrl = "https://smobza.thegttech.com";
+  // static const String baseUrl = "http://localhost:8081";
   // ---------------------------------------------------------------------------
 }

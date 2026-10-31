@@ -73,13 +73,19 @@ class _OperatorTile extends StatelessWidget {
     final label = op.isShared ? '${op.operationName} (shared by ${op.operatorCount})' : op.operationName;
     return Padding(
       padding: const EdgeInsets.only(bottom: 6.0),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: Text(label, style: ThemeTokens.bodyMedium.copyWith(fontSize: 13))),
-          Text(
-            '${op.pieces} pcs × ₹${op.rate.toStringAsFixed(2)}${op.isShared ? ' ÷${op.operatorCount}' : ''} = ₹${op.earnings.toStringAsFixed(2)}',
-            style: ThemeTokens.caption,
+          Row(
+            children: [
+              Expanded(child: Text(label, style: ThemeTokens.bodyMedium.copyWith(fontSize: 13))),
+              Text(
+                '${op.pieces} pcs × ₹${op.rate.toStringAsFixed(2)}${op.isShared ? ' ÷${op.operatorCount}' : ''} = ₹${op.earnings.toStringAsFixed(2)}',
+                style: ThemeTokens.caption,
+              ),
+            ],
           ),
+          Text('Logged by: ${op.loggedBy}', style: ThemeTokens.caption.copyWith(color: ThemeTokens.textLight)),
         ],
       ),
     );

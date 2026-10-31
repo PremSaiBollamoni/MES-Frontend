@@ -12,6 +12,7 @@ class LoginForm extends StatelessWidget {
   final bool obscurePassword;
   final VoidCallback onObscureToggle;
   final VoidCallback onLoginPressed;
+  final VoidCallback onForgotPassword;
 
   const LoginForm({
     super.key,
@@ -22,6 +23,7 @@ class LoginForm extends StatelessWidget {
     required this.obscurePassword,
     required this.onObscureToggle,
     required this.onLoginPressed,
+    required this.onForgotPassword,
   });
 
   @override
@@ -66,7 +68,14 @@ class LoginForm extends StatelessWidget {
               return null;
             },
           ),
-          const SizedBox(height: 32.0),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: onForgotPassword,
+              child: Text("Forgot Password?", style: ThemeTokens.caption.copyWith(color: ThemeTokens.primaryDark, fontWeight: FontWeight.w700)),
+            ),
+          ),
+          const SizedBox(height: 8.0),
           AppPrimaryButton(label: t.loginSignIn, onPressed: onLoginPressed, isLoading: isLoading),
         ],
       ),

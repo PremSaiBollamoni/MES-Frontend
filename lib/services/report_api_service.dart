@@ -15,28 +15,47 @@ class ReportApiService extends ApiClient {
     return data.map((e) => ReportSummary.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  // Report generation is a real LLM call at high effort and can genuinely
-  // take 30-90+ seconds, hence the generous 3 minute timeout below.
+  /// Generation runs on the server in the background, because a model call can take minutes.
+  /// If the report already exists it comes back at once (200). Otherwise the server accepts
+  /// the job (202) and this polls until it is DONE or FAILED.
   Future<ReportSummary> generateReport(
     String date,
     ReportType type, {
     bool force = false,
     ReportPeriod period = ReportPeriod.daily,
-    ReportProvider? provider,
-    String? model,
   }) async {
-    final uri = Uri.parse("$baseUrl/api/reports/generate").replace(queryParameters: {
+    final query = {
       'date': date,
       'type': type.apiValue,
       'period': period.apiValue,
-      'force': '$force',
-      if (provider != null) 'provider': provider.apiValue,
-      if (provider == ReportProvider.openRouter && model != null && model.isNotEmpty) 'model': model,
-    });
-    final response = await http.post(uri, headers: headers).timeout(const Duration(minutes: 3));
+    };
+    final uri = Uri.parse("$baseUrl/api/reports/generate")
+        .replace(queryParameters: {...query, 'force': '$force'});
+    final response = await http.post(uri, headers: headers).timeout(const Duration(seconds: 60));
     ensureSuccess(response);
     ApiClient.invalidateCache();
-    return ReportSummary.fromJson(json.decode(response.body) as Map<String, dynamic>);
+    if (response.statusCode == 200) {
+      return ReportSummary.fromJson(json.decode(response.body) as Map<String, dynamic>);
+    }
+
+    final statusUri = Uri.parse("$baseUrl/api/reports/generate/status").replace(queryParameters: query);
+    final deadline = DateTime.now().add(const Duration(minutes: 15));
+    while (DateTime.now().isBefore(deadline)) {
+      await Future.delayed(const Duration(seconds: 4));
+      final statusResponse = await http.get(statusUri, headers: headers).timeout(const Duration(seconds: 30));
+      ensureSuccess(statusResponse);
+      final body = json.decode(statusResponse.body) as Map<String, dynamic>;
+      switch (body['state'] as String) {
+        case 'DONE':
+          ApiClient.invalidateCache();
+          return ReportSummary.fromJson(body['report'] as Map<String, dynamic>);
+        case 'FAILED':
+          throw Exception(body['error'] as String? ?? 'Report generation failed');
+        case 'NONE':
+          throw Exception('The report did not start. Please try again.');
+      }
+    }
+    throw Exception('The report is still being generated. Check the list again in a few minutes.');
   }
 
   // Not cached - potentially large binary PDF content, downloaded on explicit tap

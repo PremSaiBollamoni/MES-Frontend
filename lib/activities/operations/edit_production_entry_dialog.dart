@@ -110,7 +110,8 @@ class _EditProductionEntryDialogState extends State<_EditProductionEntryDialog> 
   Future<void> _submit() async {
     final t = L10n.of(context);
     final pieces = int.tryParse(_piecesController.text.trim());
-    if (pieces == null || pieces < 0) {
+    final colour = _colourController.text.trim();
+    if (pieces == null || pieces < 0 || colour.isEmpty) {
       setState(() => _error = t.fillInEveryFieldWith);
       return;
     }
@@ -131,7 +132,7 @@ class _EditProductionEntryDialogState extends State<_EditProductionEntryDialog> 
         piecesProduced: pieces,
         startTime: hadTimes ? _clock(_start!) : null,
         endTime: hadTimes ? _clock(_end!) : null,
-        colour: _colourController.text.trim(),
+        colour: colour,
       );
       await ProductionEntryApiService().edit(widget.entry.id, request);
       if (!mounted) return;

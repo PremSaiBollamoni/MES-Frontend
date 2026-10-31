@@ -50,7 +50,11 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
       _errorMessage = null;
     });
     try {
-      final employee = await _apiService.getEmployee(widget.employeeId);
+      // Always bypass the cache here: this is the one screen someone opens
+      // specifically to check current truth (username, active status, HRMS sync) -
+      // a stale cached response (from before an admin action like Fix Usernames)
+      // showing the wrong username is worse than the extra network round trip.
+      final employee = await _apiService.getEmployee(widget.employeeId, forceRefresh: true);
       if (!mounted) return;
       setState(() {
         _employee = employee;

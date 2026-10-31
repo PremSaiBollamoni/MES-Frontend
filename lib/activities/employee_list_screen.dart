@@ -12,7 +12,13 @@ import 'employee_form_screen.dart';
 import 'hrms_import_screen.dart';
 
 class EmployeeListScreen extends StatefulWidget {
-  const EmployeeListScreen({super.key});
+  /// Set only when a SUPER_ADMIN navigated here via the factory picker - scopes the
+  /// list to that one factory. Null for a regular employee, whose own factory is
+  /// always used server-side regardless of this.
+  final int? viewFactoryId;
+  final String? factoryLabel;
+
+  const EmployeeListScreen({super.key, this.viewFactoryId, this.factoryLabel});
 
   @override
   State<EmployeeListScreen> createState() => _EmployeeListScreenState();
@@ -57,7 +63,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
       _errorMessage = null;
     });
     try {
-      final employees = await _apiService.listEmployees(forceRefresh: forceRefresh);
+      final employees = await _apiService.listEmployees(forceRefresh: forceRefresh, viewFactoryId: widget.viewFactoryId);
       if (!mounted) return;
       setState(() {
         _employees = employees;
@@ -196,6 +202,13 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ThemeTokens.background,
+      appBar: widget.factoryLabel != null
+          ? AppBar(
+              backgroundColor: ThemeTokens.surfaceSolid,
+              elevation: 0,
+              title: Text(widget.factoryLabel!, style: ThemeTokens.headingMedium.copyWith(color: ThemeTokens.textPrimary)),
+            )
+          : null,
       floatingActionButton: _selectionMode
           ? null
           : FloatingActionButton(

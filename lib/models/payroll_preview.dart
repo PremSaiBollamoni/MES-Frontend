@@ -8,6 +8,7 @@ class PayrollOperationLine {
   final double rate;
   final double earnings;
   final int operatorCount;
+  final String loggedBy;
 
   const PayrollOperationLine({
     required this.operationName,
@@ -15,6 +16,7 @@ class PayrollOperationLine {
     required this.rate,
     required this.earnings,
     required this.operatorCount,
+    required this.loggedBy,
   });
 
   bool get isShared => operatorCount > 1;
@@ -25,6 +27,7 @@ class PayrollOperationLine {
         rate: (json['rate'] as num).toDouble(),
         earnings: (json['earnings'] as num).toDouble(),
         operatorCount: (json['operatorCount'] as num?)?.toInt() ?? 1,
+        loggedBy: json['loggedBy'] as String? ?? "-",
       );
 }
 

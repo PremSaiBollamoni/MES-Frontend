@@ -17,6 +17,7 @@ class LoginSignInPane extends StatelessWidget {
   final bool obscurePassword;
   final VoidCallback onObscureToggle;
   final VoidCallback onLoginPressed;
+  final VoidCallback onForgotPassword;
   final bool showFooter;
   final Animation<double> entrance;
 
@@ -29,6 +30,7 @@ class LoginSignInPane extends StatelessWidget {
     required this.obscurePassword,
     required this.onObscureToggle,
     required this.onLoginPressed,
+    required this.onForgotPassword,
     required this.showFooter,
     required this.entrance,
   });
@@ -96,6 +98,7 @@ class LoginSignInPane extends StatelessWidget {
                           obscurePassword: obscurePassword,
                           onObscureToggle: onObscureToggle,
                           onLoginPressed: onLoginPressed,
+                          onForgotPassword: onForgotPassword,
                         ),
                       ),
                     ],

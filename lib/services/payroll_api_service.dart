@@ -27,4 +27,16 @@ class PayrollApiService extends ApiClient {
     ensureSuccess(response);
     return response;
   }
+
+  /// Generates the same sheet as the download, and emails it immediately instead.
+  Future<void> sendPayrollEmail(String startDate, String endDate, List<String> recipients) async {
+    final response = await http
+        .post(
+          Uri.parse("$baseUrl/api/payroll/send-email"),
+          headers: headers,
+          body: json.encode({"startDate": startDate, "endDate": endDate, "recipients": recipients}),
+        )
+        .timeout(const Duration(seconds: 60));
+    ensureSuccess(response);
+  }
 }

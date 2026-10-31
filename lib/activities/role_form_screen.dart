@@ -39,6 +39,28 @@ class _RoleFormScreenState extends State<RoleFormScreen> {
       _roleNameController.text = existing.roleName;
       _selectedActivities.addAll(existing.activities);
       _active = existing.isActive;
+      _refreshFromServer(existing.roleId);
+    }
+  }
+
+  /// The list this screen was opened from may itself be showing a cached, stale copy
+  /// (e.g. right after another admin action changed this role elsewhere). Silently
+  /// re-fetches this one role fresh and repopulates the form if anything differs -
+  /// the initial render still shows the passed-in data immediately, this just corrects
+  /// it a moment later rather than leaving the edit form editing stale values.
+  Future<void> _refreshFromServer(int roleId) async {
+    try {
+      final fresh = await _apiService.getRole(roleId, forceRefresh: true);
+      if (!mounted) return;
+      setState(() {
+        _roleNameController.text = fresh.roleName;
+        _selectedActivities
+          ..clear()
+          ..addAll(fresh.activities);
+        _active = fresh.isActive;
+      });
+    } catch (_) {
+      // Keep showing what was passed in - a failed background refresh is no worse.
     }
   }
 

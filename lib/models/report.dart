@@ -30,13 +30,6 @@ enum ReportPeriod {
   static ReportPeriod fromApiValue(String? value) => value == 'MONTHLY' ? ReportPeriod.monthly : ReportPeriod.daily;
 }
 
-enum ReportProvider {
-  claude,
-  openRouter;
-
-  String get apiValue => this == ReportProvider.openRouter ? 'OPENROUTER' : 'CLAUDE';
-}
-
 class ReportSummary {
   final int id;
   final String reportDate;

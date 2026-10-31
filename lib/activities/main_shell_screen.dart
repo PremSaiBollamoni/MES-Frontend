@@ -11,6 +11,8 @@ import '../utils/theme_tokens.dart';
 import 'attendance_screen.dart';
 import 'dashboard_screen.dart';
 import 'employee_list_screen.dart';
+import 'employees_factory_picker_screen.dart';
+import 'factory_list_screen.dart';
 import 'login_screen.dart';
 import 'my_daily_production_screen.dart';
 import 'operations/operations_hub_screen.dart';
@@ -18,7 +20,12 @@ import 'payroll_screen.dart';
 import 'profile_screen.dart';
 import 'reports_screen.dart';
 import 'role_list_screen.dart';
+import 'super_admin_overview_screen.dart';
 import 'station_list_screen.dart';
+import 'support_chat_screen.dart';
+import 'ai_settings_screen.dart';
+import 'mail_settings_screen.dart';
+import 'support_tickets_screen.dart';
 
 class _ShellTab {
   /// Resolves the tab's label against the current language. Stored as a function
@@ -55,10 +62,22 @@ class _MainShellScreenState extends State<MainShellScreen> {
     final user = widget.user;
 
     if (user.canAccess('DASHBOARD')) {
-      tabs.add(_ShellTab(title: (t) => t.navDashboard, icon: Icons.grid_view_rounded, content: DashboardScreen(user: user)));
+      // SUPER_ADMIN belongs to no single factory, so their "Dashboard" is a
+      // cross-factory KPI overview instead of one factory's workforce dashboard.
+      final dashboardContent = user.isSuperAdmin ? const SuperAdminOverviewScreen() : DashboardScreen(user: user);
+      tabs.add(_ShellTab(title: (t) => t.navDashboard, icon: Icons.grid_view_rounded, content: dashboardContent));
+    }
+    // SUPER_ADMIN-only: manage every factory (company/tenant) this app serves.
+    // Not localized like the other tabs since SUPER_ADMIN is a system operator
+    // role, not a factory-floor role the L10n catalogue is built around.
+    if (user.canAccess('FACTORY_MANAGEMENT')) {
+      tabs.add(_ShellTab(title: (t) => "Factories", icon: Icons.business_rounded, content: const FactoryListScreen()));
     }
     if (user.canAccess('EMPLOYEE_LIST')) {
-      tabs.add(_ShellTab(title: (t) => t.navEmployees, icon: Icons.groups_rounded, content: const EmployeeListScreen()));
+      // SUPER_ADMIN belongs to no single factory, so "Employees" starts at a factory
+      // picker instead of dumping every factory's staff into one merged list.
+      final employeesContent = user.isSuperAdmin ? const EmployeesFactoryPickerScreen() : const EmployeeListScreen();
+      tabs.add(_ShellTab(title: (t) => t.navEmployees, icon: Icons.groups_rounded, content: employeesContent));
     }
     if (user.canAccess('ROLE_LIST')) {
       tabs.add(_ShellTab(title: (t) => t.navRoles, icon: Icons.shield_rounded, content: const RoleListScreen()));
@@ -86,7 +105,32 @@ class _MainShellScreenState extends State<MainShellScreen> {
     if (user.canAccess('PROFILE')) {
       tabs.add(_ShellTab(title: (t) => t.navProfile, icon: Icons.person_rounded, content: const ProfileScreen()));
     }
+    // SUPER_ADMIN-only ticket inbox - granted to no other role. The chat itself
+    // (everyone gets SUPPORT_CHAT, see V45 migration) is reached via the floating
+    // chat button instead of a tab - see _buildFab.
+    // SUPER_ADMIN-only: the SMTP account every automated email is sent from.
+    if (user.canAccess('SMTP_CONFIGURATION')) {
+      tabs.add(_ShellTab(title: (t) => "Email", icon: Icons.mark_email_read_rounded, content: const MailSettingsScreen()));
+    }
+    // SUPER_ADMIN-only: the AI provider used by the support chat and daily reports.
+    if (user.canAccess('AI_CONFIGURATION')) {
+      tabs.add(_ShellTab(title: (t) => "AI", icon: Icons.auto_awesome_rounded, content: const AiSettingsScreen()));
+    }
+    if (user.canAccess('SUPPORT_TICKETS_ADMIN')) {
+      tabs.add(_ShellTab(title: (t) => "Tickets", icon: Icons.confirmation_number_rounded, content: const SupportTicketsScreen()));
+    }
     return tabs;
+  }
+
+  Widget? _buildChatFab() {
+    if (!widget.user.canAccess('SUPPORT_CHAT')) return null;
+    return FloatingActionButton(
+      backgroundColor: ThemeTokens.primary,
+      onPressed: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => const SupportChatScreen()),
+      ),
+      child: const Icon(Icons.support_agent_rounded, color: Colors.white),
+    );
   }
 
   Future<void> _logout() async {
@@ -151,6 +195,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
               onSwitchRole: () => showSwitchRoleDialog(context, widget.user),
             ),
             body: content,
+            floatingActionButton: _buildChatFab(),
           );
         }
 
@@ -180,6 +225,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
               ),
             ],
           ),
+          floatingActionButton: _buildChatFab(),
         );
       },
     );

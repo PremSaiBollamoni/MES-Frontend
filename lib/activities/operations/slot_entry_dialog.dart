@@ -133,7 +133,8 @@ class _SlotEntryDialogState extends State<SlotEntryDialog> {
   Future<void> _submit() async {
     final t = L10n.of(context);
     final pieces = int.tryParse(_piecesController.text.trim());
-    if (_station == null || pieces == null) {
+    final colour = _colourController.text.trim();
+    if (_station == null || pieces == null || colour.isEmpty) {
       setState(() => _error = t.fillInEveryFieldWith);
       return;
     }
@@ -152,8 +153,7 @@ class _SlotEntryDialogState extends State<SlotEntryDialog> {
       _error = null;
     });
     try {
-      final colour = _colourController.text.trim();
-      await widget.onSubmit(_station!.id, pieces, _clock(_start), _clock(_end), colour.isEmpty ? null : colour);
+      await widget.onSubmit(_station!.id, pieces, _clock(_start), _clock(_end), colour);
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
@@ -239,7 +239,7 @@ class _SlotEntryDialogState extends State<SlotEntryDialog> {
                 textCapitalization: TextCapitalization.words,
                 style: ThemeTokens.bodyLarge.copyWith(fontSize: 15),
                 decoration: InputDecoration(
-                  labelText: t.colour.toUpperCase(),
+                  labelText: "${t.colour.toUpperCase()} *",
                   labelStyle: ThemeTokens.labelSmall.copyWith(fontSize: 9.5),
                   filled: true,
                   fillColor: ThemeTokens.surfaceSolid,

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../components/custom_toast.dart';
@@ -10,8 +9,6 @@ import 'report_generate_button.dart';
 import 'report_list_item.dart';
 import 'report_pdf_opener.dart';
 import 'report_period_selector.dart';
-import 'report_provider_prefs.dart';
-import 'report_provider_selector.dart';
 
 /// Generic single-report-type screen: date picker, Generate button, list of previously
 /// generated reports for that type. Each concrete report (Production/Stock/Attendance/Worker
@@ -45,8 +42,6 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> {
 
   DateTime _date = DateTime.now();
   ReportPeriod _period = ReportPeriod.daily;
-  ReportProvider _provider = ReportProvider.claude;
-  final _modelController = TextEditingController();
   List<ReportSummary> _reports = [];
   bool _loading = true;
   bool _generating = false;
@@ -57,22 +52,6 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> {
     super.initState();
     if (widget.alwaysMonthly) _period = ReportPeriod.monthly;
     _loadReports();
-    _loadProviderPrefs();
-  }
-
-  Future<void> _loadProviderPrefs() async {
-    final (provider, model) = await ReportProviderPrefs.load();
-    if (!mounted) return;
-    setState(() {
-      _provider = provider;
-      _modelController.text = model;
-    });
-  }
-
-  @override
-  void dispose() {
-    _modelController.dispose();
-    super.dispose();
   }
 
   static const _months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -102,16 +81,12 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> {
   Future<void> _generate({bool force = false}) async {
     setState(() => _generating = true);
     try {
-      final model = _modelController.text.trim();
       final report = await _service.generateReport(
         formatIsoDate(_date),
         widget.reportType,
         force: force,
         period: _period,
-        provider: _provider,
-        model: model,
       );
-      unawaited(ReportProviderPrefs.save(_provider, model));
       if (!mounted) return;
       CustomToast.show(context, force ? L10n.of(context).reportRegenerated : L10n.of(context).reportReady);
       await _loadReports();
@@ -157,12 +132,6 @@ class _ReportTypeScreenState extends State<ReportTypeScreen> {
               period: _period,
               onChanged: (p) => setState(() => _period = p),
               monthLabel: _monthLabel,
-            ),
-            const SizedBox(height: 14.0),
-            ReportProviderSelector(
-              provider: _provider,
-              onProviderChanged: (p) => setState(() => _provider = p),
-              modelController: _modelController,
             ),
             const SizedBox(height: 14.0),
             ReportGenerateButton(generating: _generating, onPressed: () => _generate()),

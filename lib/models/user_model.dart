@@ -9,6 +9,14 @@ class UserModel {
   /// is currently signed in as). Drives whether "Switch Role" shows in the drawer.
   final List<String> availableRoles;
 
+  /// The factory this session is scoped to. Absent (null) only for legacy cached
+  /// sessions saved before multi-factory support - treat null as factory 1.
+  final int? factoryId;
+
+  /// True only for the system-wide SUPER_ADMIN role, which is not tied to any
+  /// single factory and can see/manage all of them.
+  final bool isSuperAdmin;
+
   const UserModel({
     required this.id,
     required this.name,
@@ -16,6 +24,8 @@ class UserModel {
     required this.role,
     required this.activities,
     this.availableRoles = const [],
+    this.factoryId,
+    this.isSuperAdmin = false,
   });
 
   bool get hasMultipleRoles => availableRoles.length > 1;
@@ -30,6 +40,8 @@ class UserModel {
       role: json['role'] as String,
       activities: (json['activities'] as List<dynamic>? ?? []).cast<String>(),
       availableRoles: (json['availableRoles'] as List<dynamic>? ?? []).cast<String>(),
+      factoryId: json['factoryId'] as int?,
+      isSuperAdmin: json['isSuperAdmin'] as bool? ?? false,
     );
   }
 
@@ -41,6 +53,8 @@ class UserModel {
       'role': role,
       'activities': activities,
       'availableRoles': availableRoles,
+      'factoryId': factoryId,
+      'isSuperAdmin': isSuperAdmin,
     };
   }
 }

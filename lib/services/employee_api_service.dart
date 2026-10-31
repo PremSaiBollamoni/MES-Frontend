@@ -22,8 +22,14 @@ class EmployeeApiService extends ApiClient {
     return data.map((e) => RoleModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  Future<List<EmployeeSummary>> listEmployees({bool forceRefresh = false}) async {
-    final response = await cachedGet(Uri.parse("$baseUrl/api/employees"), forceRefresh: forceRefresh);
+  /// [viewFactoryId] is only meaningful for a SUPER_ADMIN session - it picks which
+  /// factory's employees to view (SUPER_ADMIN sees nothing until one is chosen).
+  /// A regular employee's own factory is always used server-side regardless of this.
+  Future<List<EmployeeSummary>> listEmployees({bool forceRefresh = false, int? viewFactoryId}) async {
+    final uri = Uri.parse("$baseUrl/api/employees").replace(
+      queryParameters: viewFactoryId != null ? {'viewFactoryId': '$viewFactoryId'} : null,
+    );
+    final response = await cachedGet(uri, forceRefresh: forceRefresh);
     ensureSuccess(response);
     final List<dynamic> data = json.decode(response.body);
     return data.map((e) => EmployeeSummary.fromJson(e as Map<String, dynamic>)).toList();

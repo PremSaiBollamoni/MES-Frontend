@@ -64,7 +64,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _errorMessage = null;
     });
     try {
-      final profile = await _apiService.getProfile();
+      // Always live for the same reason as EmployeeDetailScreen: a stale cached
+      // profile (wrong username after an admin action, e.g. Fix Usernames) is worse
+      // than the extra round trip.
+      final profile = await _apiService.getProfile(forceRefresh: true);
       if (!mounted) return;
       setState(() {
         _profile = profile;

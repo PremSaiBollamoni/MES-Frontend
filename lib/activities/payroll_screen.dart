@@ -1,12 +1,17 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../l10n/app_localizations.dart';
+import '../components/app_button.dart' show AppPrimaryButton;
+import '../components/app_text_field.dart';
 import '../components/custom_toast.dart';
 import '../models/payroll_preview.dart';
+import '../services/mail_recipients_api_service.dart';
 import '../services/payroll_api_service.dart';
 import '../utils/error_messages.dart';
+import '../utils/web_download.dart';
 import '../utils/theme_tokens.dart';
 import 'operations/operations_widgets.dart';
 import 'payroll_preview_list.dart';
@@ -27,6 +32,7 @@ class _PayrollScreenState extends State<PayrollScreen> {
   List<PayrollOperatorRow>? _preview;
   bool _loadingPreview = false;
   bool _downloading = false;
+  bool _sendingEmail = false;
 
   void _onDateChanged(DateTime Function() pick) {
     setState(() {
@@ -64,7 +70,11 @@ class _PayrollScreenState extends State<PayrollScreen> {
       // Windows' native share sheet can't list share targets for a plain local file from
       // an unpackaged app ("Try that again"), so save straight to Downloads there instead
       // of going through Share - mobile keeps the share sheet, which works fine.
-      if (Platform.isWindows) {
+      if (kIsWeb) {
+        await downloadFileInBrowser(response.bodyBytes, 'payroll_${startIso}_to_$endIso.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        if (!mounted) return;
+        CustomToast.show(context, 'Download started');
+      } else if (Platform.isWindows) {
         final dir = await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
         final file = File('${dir.path}\\$filename');
         await file.writeAsBytes(response.bodyBytes);
@@ -82,6 +92,83 @@ class _PayrollScreenState extends State<PayrollScreen> {
       CustomToast.show(context, ErrorMessages.translate(context, e), isError: true);
     } finally {
       if (mounted) setState(() => _downloading = false);
+    }
+  }
+
+  Future<void> _sendEmail() async {
+    List<String> saved = const [];
+    try {
+      saved = await MailRecipientsApiService().payrollEmails();
+    } catch (_) {
+      // Fall through with an empty field - the user can still type addresses by hand.
+    }
+    if (!mounted) return;
+    final recipientController = TextEditingController(text: saved.join(', '));
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: ThemeTokens.surfaceSolid,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ThemeTokens.radiusLarge)),
+        title: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                gradient: ThemeTokens.primaryGradient,
+                borderRadius: BorderRadius.circular(ThemeTokens.radiusSmall),
+              ),
+              alignment: Alignment.center,
+              child: const Icon(Icons.mail_outline_rounded, size: 18, color: Colors.white),
+            ),
+            const SizedBox(width: 12),
+            Text("Send Payroll Email", style: ThemeTokens.headingMedium),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppTextField(
+                controller: recipientController,
+                label: "Recipient email",
+                hint: "name@example.com",
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Separate multiple addresses with commas.",
+                style: ThemeTokens.caption.copyWith(color: ThemeTokens.textLight),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text("Cancel")),
+          AppPrimaryButton(label: "Send", onPressed: () => Navigator.of(context).pop(true)),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+    final recipients = recipientController.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+    if (recipients.isEmpty) {
+      if (mounted) CustomToast.show(context, "At least one recipient is required", isError: true);
+      return;
+    }
+
+    setState(() => _sendingEmail = true);
+    try {
+      await _service.sendPayrollEmail(formatIsoDate(_startDate), formatIsoDate(_endDate), recipients);
+      if (!mounted) return;
+      CustomToast.show(context, "Payroll sheet sent to ${recipients.join(', ')}");
+    } catch (e) {
+      if (!mounted) return;
+      CustomToast.show(context, ErrorMessages.translate(context, e), isError: true);
+    } finally {
+      if (mounted) setState(() => _sendingEmail = false);
     }
   }
 
@@ -129,6 +216,14 @@ class _PayrollScreenState extends State<PayrollScreen> {
                   loading: _downloading,
                   onPressed: _download,
                 ),
+                const SizedBox(height: 10.0),
+                _PayrollActionButton(
+                  label: "Send Mail",
+                  loadingLabel: "Sending...",
+                  loading: _sendingEmail,
+                  onPressed: _sendEmail,
+                  outlined: true,
+                ),
               ],
             ],
           ],
@@ -143,40 +238,56 @@ class _PayrollActionButton extends StatelessWidget {
   final String loadingLabel;
   final bool loading;
   final VoidCallback onPressed;
+  final bool outlined;
 
   const _PayrollActionButton({
     required this.label,
     required this.loadingLabel,
     required this.loading,
     required this.onPressed,
+    this.outlined = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final indicatorColor = outlined ? ThemeTokens.primaryDark : Colors.white;
+    final textStyle = outlined ? ThemeTokens.buttonText.copyWith(color: ThemeTokens.primaryDark) : ThemeTokens.buttonText;
+    final content = loading
+        ? Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: indicatorColor),
+              ),
+              const SizedBox(width: 12.0),
+              Text(loadingLabel, style: textStyle),
+            ],
+          )
+        : Text(label, style: textStyle);
+
     return SizedBox(
       width: double.infinity,
-      child: ElevatedButton(
-        onPressed: loading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: ThemeTokens.primary,
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ThemeTokens.radiusMedium)),
-        ),
-        child: loading
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                  ),
-                  const SizedBox(width: 12.0),
-                  Text(loadingLabel, style: ThemeTokens.buttonText),
-                ],
-              )
-            : Text(label, style: ThemeTokens.buttonText),
-      ),
+      child: outlined
+          ? OutlinedButton(
+              onPressed: loading ? null : onPressed,
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: ThemeTokens.primary),
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ThemeTokens.radiusMedium)),
+              ),
+              child: content,
+            )
+          : ElevatedButton(
+              onPressed: loading ? null : onPressed,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ThemeTokens.primary,
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ThemeTokens.radiusMedium)),
+              ),
+              child: content,
+            ),
     );
   }
 }

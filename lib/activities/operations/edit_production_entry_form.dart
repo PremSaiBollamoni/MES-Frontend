@@ -87,7 +87,7 @@ class EditProductionEntryForm extends StatelessWidget {
           textCapitalization: TextCapitalization.words,
           style: ThemeTokens.bodyLarge.copyWith(fontSize: 15),
           decoration: InputDecoration(
-            labelText: t.colour.toUpperCase(),
+            labelText: "${t.colour.toUpperCase()} *",
             labelStyle: ThemeTokens.labelSmall.copyWith(fontSize: 9.5),
             filled: true,
             fillColor: ThemeTokens.surfaceSolid,
